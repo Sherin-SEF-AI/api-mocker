@@ -597,11 +597,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
-
-- 📖 [Documentation](https://github.com/your-username/api-mocker#documentation)
-- 🐛 [Issue Tracker](https://github.com/your-username/api-mocker/issues)
-- 💬 [Discussions](https://github.com/your-username/api-mocker/discussions)
+sherin.joseph2217@gmail.com
 
 ---
 
