@@ -1,0 +1,191 @@
+# Basic API Mock Configuration
+# This example shows the fundamental features of api-mocker
+
+server:
+  host: "127.0.0.1"
+  port: 8000
+  debug: true
+  cors:
+    enabled: true
+    origins: ["http://localhost:3000", "http://localhost:8080"]
+
+routes:
+  # Simple health check
+  - method: "GET"
+    path: "/api/health"
+    response:
+      status_code: 200
+      headers:
+        Content-Type: "application/json"
+      body:
+        status: "healthy"
+        timestamp: "{{ datetime.now().isoformat() }}"
+        version: "1.0.0"
+        uptime: "{{ random.randint(1, 1000) }} seconds"
+
+  # Get all users
+  - method: "GET"
+    path: "/api/users"
+    response:
+      status_code: 200
+      body:
+        users:
+          - id: 1
+            name: "John Doe"
+            email: "john@example.com"
+            role: "user"
+            created_at: "2024-01-15T10:30:00Z"
+          - id: 2
+            name: "Jane Smith"
+            email: "jane@example.com"
+            role: "admin"
+            created_at: "2024-01-14T15:45:00Z"
+          - id: 3
+            name: "Bob Johnson"
+            email: "bob@example.com"
+            role: "user"
+            created_at: "2024-01-13T09:20:00Z"
+        total: 3
+        page: 1
+        limit: 10
+
+  # Get specific user by ID
+  - method: "GET"
+    path: "/api/users/{user_id}"
+    response:
+      status_code: 200
+      body:
+        id: "{{ params.user_id }}"
+        name: "{{ fake.name() }}"
+        email: "{{ fake.email() }}"
+        role: "{{ random.choice(['user', 'admin']) }}"
+        created_at: "{{ datetime.now().isoformat() }}"
+        profile:
+          bio: "{{ fake.text() }}"
+          avatar: "{{ fake.image_url() }}"
+
+  # Create new user
+  - method: "POST"
+    path: "/api/users"
+    validation:
+      schema:
+        type: "object"
+        required: ["name", "email"]
+        properties:
+          name:
+            type: "string"
+            minLength: 2
+            maxLength: 100
+          email:
+            type: "string"
+            format: "email"
+          role:
+            type: "string"
+            enum: ["user", "admin"]
+            default: "user"
+    response:
+      status_code: 201
+      body:
+        id: "{{ random.randint(1000, 9999) }}"
+        name: "{{ request.body.name }}"
+        email: "{{ request.body.email }}"
+        role: "{{ request.body.role or 'user' }}"
+        created_at: "{{ datetime.now().isoformat() }}"
+        message: "User created successfully"
+
+  # Update user
+  - method: "PUT"
+    path: "/api/users/{user_id}"
+    response:
+      status_code: 200
+      body:
+        id: "{{ params.user_id }}"
+        name: "{{ request.body.name or 'Updated Name' }}"
+        email: "{{ request.body.email or 'updated@example.com' }}"
+        updated_at: "{{ datetime.now().isoformat() }}"
+        message: "User updated successfully"
+
+  # Delete user
+  - method: "DELETE"
+    path: "/api/users/{user_id}"
+    response:
+      status_code: 204
+      body: null
+
+  # Search users
+  - method: "GET"
+    path: "/api/search"
+    response:
+      status_code: 200
+      body:
+        query: "{{ request.query.q or 'default' }}"
+        results:
+          - id: "{{ random.randint(1, 100) }}"
+            name: "{{ fake.name() }}"
+            email: "{{ fake.email() }}"
+            score: "{{ random.uniform(0.1, 1.0) }}"
+          - id: "{{ random.randint(1, 100) }}"
+            name: "{{ fake.name() }}"
+            email: "{{ fake.email() }}"
+            score: "{{ random.uniform(0.1, 1.0) }}"
+        total_results: "{{ random.randint(10, 100) }}"
+        page: "{{ request.query.page or 1 }}"
+        limit: "{{ request.query.limit or 10 }}"
+
+  # Echo endpoint (for testing)
+  - method: "POST"
+    path: "/api/echo"
+    response:
+      status_code: 200
+      body:
+        method: "{{ request.method }}"
+        path: "{{ request.path }}"
+        headers: "{{ request.headers }}"
+        query_params: "{{ request.query }}"
+        body: "{{ request.body }}"
+        timestamp: "{{ datetime.now().isoformat() }}"
+
+  # Simulate slow response
+  - method: "GET"
+    path: "/api/slow"
+    delay: 2.0
+    response:
+      status_code: 200
+      body:
+        message: "This response was delayed by 2 seconds"
+        timestamp: "{{ datetime.now().isoformat() }}"
+
+  # Simulate error response
+  - method: "GET"
+    path: "/api/error"
+    response:
+      status_code: 500
+      body:
+        error: "Internal Server Error"
+        message: "Something went wrong"
+        timestamp: "{{ datetime.now().isoformat() }}"
+        request_id: "{{ random.randint(100000, 999999) }}"
+
+# Database configuration (optional)
+database:
+  type: "sqlite"
+  path: "mock_data.db"
+  tables:
+    users:
+      - id: 1
+        name: "John Doe"
+        email: "john@example.com"
+        role: "user"
+      - id: 2
+        name: "Jane Smith"
+        email: "jane@example.com"
+        role: "admin"
+
+# Plugins configuration (optional)
+plugins:
+  - name: "faker"
+    config:
+      locale: "en_US"
+  - name: "jwt"
+    config:
+      secret: "your-secret-key-here" 

@@ -1,0 +1,2 @@
+[console_scripts]
+api-mocker = api_mocker.cli:main

@@ -1,0 +1,98 @@
+Metadata-Version: 2.4
+Name: api-mocker
+Version: 0.1.0
+Summary: The industry-standard, production-ready, free API mocking and development acceleration tool.
+Author-email: sherin joseph roy <sherin.joseph2217@gmail.com>
+License: MIT License
+        
+        Copyright (c) 2024 sherin joseph roy
+        
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+        
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE. 
+Project-URL: Homepage, https://github.com/Sherin-SEF-AI/api-mocker
+Project-URL: Repository, https://github.com/Sherin-SEF-AI/api-mocker.git
+Keywords: api,mock,mocking,development,testing,openapi,swagger,cli,devops
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Testing
+Classifier: Topic :: Software Development :: Libraries :: Application Frameworks
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: typer>=0.9.0
+Requires-Dist: fastapi>=0.100.0
+Requires-Dist: uvicorn>=0.23.0
+Requires-Dist: PyYAML>=6.0
+Requires-Dist: toml>=0.10.2
+Requires-Dist: pytest>=7.0.0
+Requires-Dist: httpx>=0.24.0
+Requires-Dist: rich>=13.0.0
+Dynamic: license-file
+
+# api-mocker
+
+The industry-standard, production-ready, free API mocking and development acceleration tool.
+
+## Project Mission
+Create the most comprehensive, user-friendly, and feature-rich API mocking solution to eliminate API dependency bottlenecks and accelerate development workflows for all developers.
+
+## Features
+- Robust HTTP mock server supporting all HTTP methods
+- Dynamic and static response generation
+- OpenAPI/Swagger/Postman import/export
+- CLI and Python API interfaces
+- Hot-reloading, config file support (JSON/YAML/TOML)
+- Request recording, replay, and proxy mode
+- Schema-based data generation and validation
+- Advanced routing, middleware, and authentication simulation
+- Data persistence, state management, and in-memory DB
+- Performance, monitoring, and analytics tools
+- Framework integrations (Django, Flask, FastAPI, Node.js, etc.)
+- Docker, CI/CD, and cloud deployment support
+- Team collaboration and plugin architecture
+
+## Installation
+```bash
+pip install api-mocker
+```
+
+## Quick Start
+```bash
+api-mocker start --config api-mock.yaml
+```
+Or use as a Python library:
+```python
+from api_mocker import MockServer
+server = MockServer(config_path="api-mock.yaml")
+server.start()
+```
+
+## Documentation
+See [Full Documentation](https://github.com/Sherin-SEF-AI/api-mocker#documentation) for guides, API reference, and examples.
+
+## Contributing
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## License
+MIT License
+
+---
+© 2024 sherin joseph roy 

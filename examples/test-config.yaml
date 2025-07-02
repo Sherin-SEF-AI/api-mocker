@@ -1,0 +1,240 @@
+# Test Configuration for api-mocker
+# This file contains test cases to validate your mock API
+
+tests:
+  # Basic health check test
+  - name: "Health Check"
+    description: "Test the health endpoint returns 200"
+    request:
+      method: "GET"
+      url: "/api/health"
+    expected:
+      status_code: 200
+      body:
+        status: "healthy"
+        version: "1.0.0"
+    timeout: 5
+
+  # Test getting all users
+  - name: "Get All Users"
+    description: "Test retrieving all users"
+    request:
+      method: "GET"
+      url: "/api/users"
+    expected:
+      status_code: 200
+      body:
+        total: 3
+        users:
+          - id: 1
+            name: "John Doe"
+            email: "john@example.com"
+          - id: 2
+            name: "Jane Smith"
+            email: "jane@example.com"
+    timeout: 5
+
+  # Test getting specific user
+  - name: "Get User by ID"
+    description: "Test retrieving a specific user by ID"
+    request:
+      method: "GET"
+      url: "/api/users/1"
+    expected:
+      status_code: 200
+      body:
+        id: "1"
+    timeout: 5
+
+  # Test creating a new user
+  - name: "Create User"
+    description: "Test creating a new user with valid data"
+    request:
+      method: "POST"
+      url: "/api/users"
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: "Test User"
+        email: "test@example.com"
+        role: "user"
+    expected:
+      status_code: 201
+      body:
+        name: "Test User"
+        email: "test@example.com"
+        role: "user"
+        message: "User created successfully"
+    timeout: 5
+
+  # Test user creation validation
+  - name: "Create User Validation"
+    description: "Test user creation with invalid data"
+    request:
+      method: "POST"
+      url: "/api/users"
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: "A"  # Too short
+        email: "invalid-email"  # Invalid email
+    expected:
+      status_code: 400
+    timeout: 5
+
+  # Test updating a user
+  - name: "Update User"
+    description: "Test updating an existing user"
+    request:
+      method: "PUT"
+      url: "/api/users/1"
+      headers:
+        Content-Type: "application/json"
+      body:
+        name: "Updated User"
+        email: "updated@example.com"
+    expected:
+      status_code: 200
+      body:
+        id: "1"
+        name: "Updated User"
+        email: "updated@example.com"
+        message: "User updated successfully"
+    timeout: 5
+
+  # Test deleting a user
+  - name: "Delete User"
+    description: "Test deleting a user"
+    request:
+      method: "DELETE"
+      url: "/api/users/1"
+    expected:
+      status_code: 204
+    timeout: 5
+
+  # Test search functionality
+  - name: "Search Users"
+    description: "Test search endpoint with query parameters"
+    request:
+      method: "GET"
+      url: "/api/search?q=test&page=1&limit=5"
+    expected:
+      status_code: 200
+      body:
+        query: "test"
+        page: 1
+        limit: 5
+    timeout: 5
+
+  # Test echo endpoint
+  - name: "Echo Request"
+    description: "Test echo endpoint returns request data"
+    request:
+      method: "POST"
+      url: "/api/echo"
+      headers:
+        Content-Type: "application/json"
+        X-Custom-Header: "test-value"
+      body:
+        message: "Hello World"
+        number: 42
+    expected:
+      status_code: 200
+      body:
+        method: "POST"
+        path: "/api/echo"
+        body:
+          message: "Hello World"
+          number: 42
+    timeout: 5
+
+  # Test slow response
+  - name: "Slow Response"
+    description: "Test endpoint with delayed response"
+    request:
+      method: "GET"
+      url: "/api/slow"
+    expected:
+      status_code: 200
+      body:
+        message: "This response was delayed by 2 seconds"
+    timeout: 10  # Increased timeout for slow response
+
+  # Test error response
+  - name: "Error Response"
+    description: "Test error endpoint returns 500"
+    request:
+      method: "GET"
+      url: "/api/error"
+    expected:
+      status_code: 500
+      body:
+        error: "Internal Server Error"
+    timeout: 5
+
+  # Test non-existent endpoint
+  - name: "Not Found"
+    description: "Test non-existent endpoint returns 404"
+    request:
+      method: "GET"
+      url: "/api/nonexistent"
+    expected:
+      status_code: 404
+    timeout: 5
+
+  # Test with query parameters
+  - name: "Query Parameters"
+    description: "Test endpoint with various query parameters"
+    request:
+      method: "GET"
+      url: "/api/search?q=python&page=2&limit=10&sort=name"
+    expected:
+      status_code: 200
+      body:
+        query: "python"
+        page: 2
+        limit: 10
+    timeout: 5
+
+  # Test with custom headers
+  - name: "Custom Headers"
+    description: "Test endpoint with custom headers"
+    request:
+      method: "GET"
+      url: "/api/health"
+      headers:
+        X-API-Key: "test-key"
+        X-User-ID: "123"
+        Accept: "application/json"
+    expected:
+      status_code: 200
+    timeout: 5
+
+# Test suite configuration
+config:
+  base_url: "http://127.0.0.1:8000"
+  default_timeout: 5
+  retry_attempts: 3
+  retry_delay: 1
+  parallel_tests: false
+  stop_on_failure: false
+  verbose: true
+
+# Test data for dynamic tests
+test_data:
+  users:
+    - name: "Alice Johnson"
+      email: "alice@example.com"
+      role: "user"
+    - name: "Bob Smith"
+      email: "bob@example.com"
+      role: "admin"
+    - name: "Charlie Brown"
+      email: "charlie@example.com"
+      role: "user"
+
+# Environment variables for tests
+environment:
+  API_BASE_URL: "http://127.0.0.1:8000"
+  TEST_USER_EMAIL: "test@example.com"
+  TEST_USER_PASSWORD: "password123" 
