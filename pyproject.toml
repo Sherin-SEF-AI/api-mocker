@@ -1,6 +1,6 @@
 [project]
 name = "api-mocker"
-version = "0.1.1"
+version = "0.1.2"
 description = "The industry-standard, production-ready, free API mocking and development acceleration tool."
 authors = [
     { name = "sherin joseph roy", email = "sherin.joseph2217@gmail.com" }

@@ -57,9 +57,9 @@ class AdvancedRouter:
         self.routes.append(route)
     
     def find_route(self, path: str, method: str) -> Optional[RouteConfig]:
-        # Normalize path - remove leading slash if present
-        if path.startswith('/'):
-            path = path[1:]
+        # Normalize path - ensure it starts with /
+        if not path.startswith('/'):
+            path = '/' + path
         
         print(f"Looking for route: {method} {path}")
         print(f"Available routes: {[(r.method, r.path) for r in self.routes]}")
