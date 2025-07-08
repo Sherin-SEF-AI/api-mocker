@@ -1,0 +1,35 @@
+# Analytics Configuration Example
+analytics:
+  enabled: true
+  database_path: "analytics.db"
+  retention_days: 30
+  export_format: "json"
+  
+  # Dashboard settings
+  dashboard:
+    enabled: true
+    port: 8080
+    host: "127.0.0.1"
+    auto_refresh: true
+    refresh_interval: 5  # seconds
+    
+  # Metrics collection
+  metrics:
+    track_requests: true
+    track_response_times: true
+    track_error_rates: true
+    track_feature_usage: true
+    track_user_sessions: true
+    
+  # Export settings
+  export:
+    auto_export: false
+    export_interval: 24  # hours
+    export_path: "./exports"
+    formats: ["json", "csv"]
+    
+  # Cleanup settings
+  cleanup:
+    auto_cleanup: true
+    cleanup_interval: 7  # days
+    retention_period: 30  # days 

@@ -11,6 +11,9 @@ from api_mocker import MockServer
 from api_mocker.openapi import OpenAPIParser, PostmanImporter
 from api_mocker.recorder import RequestRecorder, ProxyRecorder, ReplayEngine
 from api_mocker.plugins import PluginManager, BUILTIN_PLUGINS
+from api_mocker.analytics import AnalyticsManager
+from api_mocker.dashboard import DashboardManager
+from api_mocker.advanced import AdvancedFeatures, RateLimitConfig, CacheConfig, AuthConfig
 
 app = typer.Typer(help="api-mocker: The industry-standard, production-ready, free API mocking and development acceleration tool.")
 console = Console()
@@ -492,6 +495,170 @@ api-mocker record https://api.example.com --output recordings/recorded.json
         except Exception as e:
             console.print(f"[red]✗[/red] Failed to create project: {e}")
             raise typer.Exit(1)
+
+@app.command()
+def analytics(
+    action: str = typer.Argument(..., help="Analytics action (dashboard, export, summary)"),
+    hours: int = typer.Option(24, "--hours", help="Time period for analytics (hours)"),
+    output: str = typer.Option(None, "--output", help="Output file for export"),
+    format: str = typer.Option("json", "--format", help="Export format (json, csv)"),
+):
+    """Manage analytics and metrics."""
+    try:
+        analytics_manager = AnalyticsManager()
+        
+        if action == "dashboard":
+            console.print("[blue]📊[/blue] Starting analytics dashboard...")
+            dashboard = DashboardManager(analytics_manager)
+            dashboard.start()
+            
+        elif action == "export":
+            if not output:
+                output = f"analytics-{int(time.time())}.{format}"
+                
+            console.print(f"[blue]📤[/blue] Exporting analytics to {output}...")
+            analytics_manager.export_analytics(output, format)
+            console.print(f"[green]✓[/green] Analytics exported to: {output}")
+            
+        elif action == "summary":
+            console.print(f"[blue]📈[/blue] Generating analytics summary for last {hours} hours...")
+            summary = analytics_manager.get_analytics_summary(hours)
+            
+            # Display summary
+            table = Table(title=f"Analytics Summary (Last {hours} hours)")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="green")
+            
+            table.add_row("Total Requests", str(summary["total_requests"]))
+            table.add_row("Popular Endpoints", str(len(summary["popular_endpoints"])))
+            table.add_row("Average Response Time", f"{summary['server_metrics']['average_response_time_ms']:.2f}ms")
+            table.add_row("Error Rate", f"{summary['server_metrics']['error_rate']:.2f}%")
+            
+            console.print(table)
+            
+        else:
+            console.print(f"[red]✗[/red] Unknown action: {action}")
+            raise typer.Exit(1)
+            
+    except Exception as e:
+        console.print(f"[red]✗[/red] Analytics error: {e}")
+        raise typer.Exit(1)
+
+@app.command()
+def advanced(
+    feature: str = typer.Argument(..., help="Advanced feature (rate-limit, cache, auth, health)"),
+    config_file: str = typer.Option(None, "--config", help="Configuration file path"),
+    enable: bool = typer.Option(True, "--enable/--disable", help="Enable or disable feature"),
+):
+    """Configure advanced features."""
+    try:
+        if feature == "rate-limit":
+            console.print("[blue]🛡️[/blue] Configuring rate limiting...")
+            
+            config = RateLimitConfig(
+                requests_per_minute=60,
+                requests_per_hour=1000,
+                burst_size=10
+            )
+            
+            if config_file:
+                # Load from file
+                with open(config_file, 'r') as f:
+                    if config_file.endswith('.yaml') or config_file.endswith('.yml'):
+                        import yaml
+                        file_config = yaml.safe_load(f)
+                    else:
+                        file_config = json.load(f)
+                        
+                config = RateLimitConfig(**file_config.get("rate_limit", {}))
+            
+            console.print(f"[green]✓[/green] Rate limiting configured:")
+            console.print(f"  - Requests per minute: {config.requests_per_minute}")
+            console.print(f"  - Requests per hour: {config.requests_per_hour}")
+            console.print(f"  - Burst size: {config.burst_size}")
+            
+        elif feature == "cache":
+            console.print("[blue]⚡[/blue] Configuring caching...")
+            
+            config = CacheConfig(
+                enabled=True,
+                ttl_seconds=300,
+                max_size=1000,
+                strategy="lru"
+            )
+            
+            if config_file:
+                with open(config_file, 'r') as f:
+                    if config_file.endswith('.yaml') or config_file.endswith('.yml'):
+                        import yaml
+                        file_config = yaml.safe_load(f)
+                    else:
+                        file_config = json.load(f)
+                        
+                config = CacheConfig(**file_config.get("cache", {}))
+            
+            console.print(f"[green]✓[/green] Caching configured:")
+            console.print(f"  - Enabled: {config.enabled}")
+            console.print(f"  - TTL: {config.ttl_seconds} seconds")
+            console.print(f"  - Max size: {config.max_size}")
+            console.print(f"  - Strategy: {config.strategy}")
+            
+        elif feature == "auth":
+            console.print("[blue]🔐[/blue] Configuring authentication...")
+            
+            config = AuthConfig(
+                enabled=True,
+                secret_key="your-secret-key-change-this",
+                algorithm="HS256",
+                token_expiry_hours=24
+            )
+            
+            if config_file:
+                with open(config_file, 'r') as f:
+                    if config_file.endswith('.yaml') or config_file.endswith('.yml'):
+                        import yaml
+                        file_config = yaml.safe_load(f)
+                    else:
+                        file_config = json.load(f)
+                        
+                config = AuthConfig(**file_config.get("auth", {}))
+            
+            console.print(f"[green]✓[/green] Authentication configured:")
+            console.print(f"  - Enabled: {config.enabled}")
+            console.print(f"  - Algorithm: {config.algorithm}")
+            console.print(f"  - Token expiry: {config.token_expiry_hours} hours")
+            
+        elif feature == "health":
+            console.print("[blue]🏥[/blue] Running health checks...")
+            
+            from api_mocker.advanced import HealthChecker, check_database_connection, check_memory_usage, check_disk_space
+            
+            health_checker = HealthChecker()
+            health_checker.add_check("database", check_database_connection)
+            health_checker.add_check("memory", check_memory_usage)
+            health_checker.add_check("disk", check_disk_space)
+            
+            status = health_checker.get_health_status()
+            
+            table = Table(title="Health Check Results")
+            table.add_column("Check", style="cyan")
+            table.add_column("Status", style="green")
+            
+            for check_name, check_status in status["checks"].items():
+                status_icon = "✓" if check_status else "✗"
+                status_color = "green" if check_status else "red"
+                table.add_row(check_name, f"[{status_color}]{status_icon}[/{status_color}]")
+            
+            console.print(table)
+            console.print(f"Overall status: {status['status']}")
+            
+        else:
+            console.print(f"[red]✗[/red] Unknown feature: {feature}")
+            raise typer.Exit(1)
+            
+    except Exception as e:
+        console.print(f"[red]✗[/red] Advanced feature error: {e}")
+        raise typer.Exit(1)
 
 if __name__ == "__main__":
     app() 

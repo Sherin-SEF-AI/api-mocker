@@ -20,6 +20,15 @@ Create the most comprehensive, user-friendly, and feature-rich API mocking solut
 - **Docker, CI/CD, and cloud deployment support**
 - **Team collaboration and plugin architecture**
 
+### 🎯 New in v0.1.2
+- **📊 Real-time Analytics Dashboard**: Beautiful web dashboard with charts and metrics
+- **🛡️ Rate Limiting**: Configurable rate limiting with sliding window algorithm
+- **⚡ Caching System**: In-memory caching with TTL and eviction strategies
+- **🔐 Authentication**: JWT-based authentication with role-based access control
+- **🏥 Health Checks**: System health monitoring and status reporting
+- **📈 Advanced Metrics**: Comprehensive request tracking and performance analysis
+- **🔄 Export Capabilities**: Export analytics data in multiple formats
+
 ## 📦 Installation
 
 ### From PyPI (Recommended)
@@ -183,6 +192,33 @@ api-mocker init --name my-api-project
 
 # Create from template
 api-mocker init --template rest-api --name my-rest-api
+```
+
+#### Analytics & Monitoring
+```bash
+# Start analytics dashboard
+api-mocker analytics dashboard
+
+# Export analytics data
+api-mocker analytics export --format json --output analytics.json
+
+# View analytics summary
+api-mocker analytics summary --hours 48
+```
+
+#### Advanced Features
+```bash
+# Configure rate limiting
+api-mocker advanced rate-limit --config rate-limit.yaml
+
+# Set up caching
+api-mocker advanced cache --enable
+
+# Configure authentication
+api-mocker advanced auth --config auth.yaml
+
+# Run health checks
+api-mocker advanced health
 ```
 
 ### Configuration Examples

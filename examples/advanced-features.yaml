@@ -1,0 +1,104 @@
+# Advanced Features Configuration Example
+
+# Rate Limiting Configuration
+rate_limit:
+  enabled: true
+  requests_per_minute: 60
+  requests_per_hour: 1000
+  burst_size: 10
+  window_size: 60  # seconds
+  
+  # Per-endpoint rate limits
+  endpoints:
+    "/api/users": 
+      requests_per_minute: 30
+      requests_per_hour: 500
+    "/api/admin/*":
+      requests_per_minute: 10
+      requests_per_hour: 100
+
+# Caching Configuration
+cache:
+  enabled: true
+  ttl_seconds: 300  # 5 minutes
+  max_size: 1000
+  strategy: "lru"  # lru, fifo, random
+  
+  # Cache-specific endpoints
+  endpoints:
+    "/api/public/*":
+      ttl_seconds: 600  # 10 minutes
+    "/api/static/*":
+      ttl_seconds: 3600  # 1 hour
+
+# Authentication Configuration
+auth:
+  enabled: true
+  secret_key: "your-super-secret-key-change-this-in-production"
+  algorithm: "HS256"
+  token_expiry_hours: 24
+  
+  # Paths that require authentication
+  require_auth:
+    - "/api/admin/*"
+    - "/api/users/*"
+    - "/api/settings/*"
+    
+  # Public paths (no auth required)
+  public_paths:
+    - "/api/public/*"
+    - "/health"
+    - "/metrics"
+    
+  # Role-based access
+  roles:
+    admin:
+      paths: ["/api/admin/*", "/api/settings/*"]
+    user:
+      paths: ["/api/users/*"]
+    public:
+      paths: ["/api/public/*"]
+
+# Health Check Configuration
+health:
+  enabled: true
+  check_interval: 30  # seconds
+  
+  # Health checks to run
+  checks:
+    - name: "database"
+      type: "database"
+      enabled: true
+    - name: "memory"
+      type: "memory"
+      enabled: true
+      threshold: 90  # percentage
+    - name: "disk"
+      type: "disk"
+      enabled: true
+      threshold: 95  # percentage
+    - name: "custom"
+      type: "http"
+      url: "http://localhost:8000/health"
+      timeout: 5
+      enabled: true
+
+# Metrics Configuration
+metrics:
+  enabled: true
+  collection_interval: 60  # seconds
+  
+  # Metrics to collect
+  collect:
+    - "request_count"
+    - "response_time"
+    - "error_rate"
+    - "cache_hit_rate"
+    - "rate_limit_hits"
+    - "auth_failures"
+    
+  # Export settings
+  export:
+    format: "prometheus"
+    endpoint: "/metrics"
+    enabled: true 

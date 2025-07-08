@@ -1,11 +1,11 @@
 [project]
 name = "api-mocker"
-version = "0.1.2"
+version = "0.1.3"
 description = "The industry-standard, production-ready, free API mocking and development acceleration tool."
 authors = [
     { name = "sherin joseph roy", email = "sherin.joseph2217@gmail.com" }
 ]
-readme = "README.md"
+readme = "PYPI_DESCRIPTION.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.8"
 keywords = ["api", "mock", "mocking", "development", "testing", "openapi", "swagger", "cli", "devops"]
@@ -27,6 +27,14 @@ dependencies = [
     "pytest>=7.0.0",
     "httpx>=0.24.0",
     "rich>=13.0.0",
+    "psutil>=5.9.0",
+    "aiofiles>=23.0.0",
+]
+
+[project.optional-dependencies]
+advanced = [
+    "PyJWT>=2.8.0",
+    "redis>=4.5.0",
 ]
 
 [project.urls]
