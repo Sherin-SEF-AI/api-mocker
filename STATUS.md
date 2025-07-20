@@ -60,7 +60,7 @@
 - **`analytics`**: Manage analytics dashboard and metrics
 - **`advanced`**: Configure advanced features (rate limiting, caching, auth)
 - **`ai`**: AI-powered mock data generation and management
-- **`designer`**: Launch visual API designer web interface
+
 - **`testing`**: Advanced testing framework for comprehensive API testing
 
 ### Plugin System
