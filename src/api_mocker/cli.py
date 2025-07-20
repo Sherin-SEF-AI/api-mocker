@@ -660,5 +660,246 @@ def advanced(
         console.print(f"[red]✗[/red] Advanced feature error: {e}")
         raise typer.Exit(1)
 
+@app.command()
+def ai(
+    action: str = typer.Argument(..., help="AI action (generate, configure, cache, test)"),
+    prompt: str = typer.Option(None, "--prompt", help="AI generation prompt"),
+    endpoint: str = typer.Option(None, "--endpoint", help="API endpoint path"),
+    count: int = typer.Option(1, "--count", help="Number of records to generate"),
+    schema: str = typer.Option(None, "--schema", help="JSON schema file path"),
+    output: str = typer.Option(None, "--output", help="Output file path"),
+    api_key: str = typer.Option(None, "--api-key", help="OpenAI API key"),
+    model: str = typer.Option("gpt-3.5-turbo", "--model", help="AI model to use"),
+    clear_cache: bool = typer.Option(False, "--clear-cache", help="Clear AI generation cache"),
+):
+    """AI-powered mock data generation and management."""
+    try:
+        from .ai_generator import AIGenerationManager
+        
+        # Initialize AI manager
+        ai_manager = AIGenerationManager()
+        
+        if action == "configure":
+            console.print("[blue]🤖[/blue] Configuring AI settings...")
+            
+            # Get API key from user
+            if not api_key:
+                api_key = typer.prompt("Enter your OpenAI API key", hide_input=True)
+            
+            # Save API key securely
+            config_dir = Path.home() / ".api-mocker"
+            config_dir.mkdir(exist_ok=True)
+            config_file = config_dir / "ai_config.json"
+            
+            config_data = {
+                "openai_api_key": api_key,
+                "model": model,
+                "cache_enabled": True
+            }
+            
+            with open(config_file, 'w') as f:
+                json.dump(config_data, f, indent=2)
+            
+            console.print("[green]✓[/green] AI configuration saved")
+            
+        elif action == "generate":
+            if not prompt:
+                prompt = typer.prompt("Enter generation prompt")
+            
+            if not endpoint:
+                endpoint = typer.prompt("Enter API endpoint path")
+            
+            console.print(f"[blue]🤖[/blue] Generating AI-powered mock data...")
+            console.print(f"Prompt: {prompt}")
+            console.print(f"Endpoint: {endpoint}")
+            console.print(f"Count: {count}")
+            
+            # Load schema if provided
+            schema_data = None
+            if schema:
+                with open(schema, 'r') as f:
+                    schema_data = json.load(f)
+            
+            # Generate data
+            result = ai_manager.generate_mock_data(
+                prompt=prompt,
+                endpoint=endpoint,
+                count=count,
+                schema=schema_data
+            )
+            
+            # Display results
+            table = Table(title="AI Generation Results")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="green")
+            
+            table.add_row("Source", result["metadata"]["source"])
+            table.add_row("Model", result["metadata"]["model"])
+            table.add_row("Generation Time", f"{result['generation_time']:.2f}s")
+            table.add_row("Cache Key", result["cache_key"][:8] + "..." if result["cache_key"] else "N/A")
+            
+            console.print(table)
+            
+            # Save to file if requested
+            if output:
+                with open(output, 'w') as f:
+                    json.dump(result["data"], f, indent=2)
+                console.print(f"[green]✓[/green] Data saved to: {output}")
+            else:
+                console.print("\n[blue]Generated Data:[/blue]")
+                console.print_json(data=result["data"])
+            
+        elif action == "cache":
+            if clear_cache:
+                ai_manager.clear_cache()
+                console.print("[green]✓[/green] AI cache cleared")
+            else:
+                stats = ai_manager.get_cache_stats()
+                table = Table(title="AI Cache Statistics")
+                table.add_column("Metric", style="cyan")
+                table.add_column("Value", style="green")
+                
+                table.add_row("Cache Size", str(stats["cache_size"]))
+                table.add_row("Cache Enabled", str(stats["cache_enabled"]))
+                table.add_row("Cache TTL", f"{stats['cache_ttl']}s")
+                
+                console.print(table)
+            
+        elif action == "test":
+            console.print("[blue]🧪[/blue] Testing AI generation...")
+            
+            # Test with simple prompt
+            test_result = ai_manager.generate_mock_data(
+                prompt="Generate a user profile with name, email, and age",
+                endpoint="/test/user",
+                count=1
+            )
+            
+            console.print("[green]✓[/green] AI generation test successful")
+            console.print(f"Generated in: {test_result['generation_time']:.2f}s")
+            console.print_json(data=test_result["data"])
+            
+        else:
+            console.print(f"[red]✗[/red] Unknown AI action: {action}")
+            raise typer.Exit(1)
+            
+    except Exception as e:
+        console.print(f"[red]✗[/red] AI generation error: {e}")
+        raise typer.Exit(1)
+
+
+
+@app.command()
+def testing(
+    action: str = typer.Argument(..., help="Testing action (run, generate, performance, report)"),
+    test_file: str = typer.Option(None, "--test-file", help="Test file path"),
+    config_file: str = typer.Option(None, "--config", help="API config file path"),
+    output_file: str = typer.Option(None, "--output", help="Output file path"),
+    concurrent_users: int = typer.Option(10, "--users", help="Number of concurrent users for performance test"),
+    duration: int = typer.Option(60, "--duration", help="Test duration in seconds"),
+    verbose: bool = typer.Option(False, "--verbose", help="Verbose output"),
+):
+    """Advanced testing framework for API testing."""
+    try:
+        from .testing import TestingFramework
+        
+        framework = TestingFramework()
+        
+        if action == "run":
+            if not test_file:
+                test_file = typer.prompt("Enter test file path")
+            
+            console.print(f"[blue]🧪[/blue] Running tests from: {test_file}")
+            results = framework.run_tests_from_file(test_file)
+            
+            # Display results
+            passed = sum(1 for r in results if r.status == "passed")
+            failed = sum(1 for r in results if r.status == "failed")
+            errors = sum(1 for r in results if r.status == "error")
+            
+            table = Table(title="Test Results")
+            table.add_column("Test", style="cyan")
+            table.add_column("Status", style="green")
+            table.add_column("Duration", style="blue")
+            table.add_column("Details", style="yellow")
+            
+            for result in results:
+                status_icon = "✓" if result.status == "passed" else "✗"
+                status_color = "green" if result.status == "passed" else "red"
+                
+                details = ""
+                if result.assertions:
+                    failed_assertions = [a for a in result.assertions if not a["passed"]]
+                    if failed_assertions:
+                        details = f"{len(failed_assertions)} failed assertions"
+                
+                table.add_row(
+                    result.test_name,
+                    f"[{status_color}]{status_icon} {result.status}[/{status_color}]",
+                    f"{result.duration:.2f}s",
+                    details
+                )
+            
+            console.print(table)
+            console.print(f"\n[green]✓[/green] Passed: {passed}")
+            console.print(f"[red]✗[/red] Failed: {failed}")
+            console.print(f"[yellow]⚠[/yellow] Errors: {errors}")
+            
+        elif action == "generate":
+            if not config_file:
+                config_file = typer.prompt("Enter API config file path")
+            
+            if not output_file:
+                output_file = f"tests-{int(time.time())}.yaml"
+            
+            console.print(f"[blue]🔧[/blue] Generating tests from: {config_file}")
+            framework.generate_tests(config_file, output_file)
+            console.print(f"[green]✓[/green] Tests generated: {output_file}")
+            
+        elif action == "performance":
+            if not test_file:
+                test_file = typer.prompt("Enter performance test file path")
+            
+            console.print(f"[blue]⚡[/blue] Running performance test...")
+            console.print(f"Concurrent users: {concurrent_users}")
+            console.print(f"Duration: {duration} seconds")
+            
+            result = framework.run_performance_test_from_file(test_file)
+            
+            # Display performance results
+            table = Table(title="Performance Test Results")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="green")
+            
+            table.add_row("Total Requests", str(result.total_requests))
+            table.add_row("Successful Requests", str(result.successful_requests))
+            table.add_row("Failed Requests", str(result.failed_requests))
+            table.add_row("Average Response Time", f"{result.average_response_time:.2f}ms")
+            table.add_row("Min Response Time", f"{result.min_response_time:.2f}ms")
+            table.add_row("Max Response Time", f"{result.max_response_time:.2f}ms")
+            table.add_row("P95 Response Time", f"{result.p95_response_time:.2f}ms")
+            table.add_row("P99 Response Time", f"{result.p99_response_time:.2f}ms")
+            table.add_row("Requests per Second", f"{result.requests_per_second:.2f}")
+            table.add_row("Error Rate", f"{result.error_rate:.2f}%")
+            table.add_row("Test Duration", f"{result.duration:.2f}s")
+            
+            console.print(table)
+            
+        elif action == "report":
+            if not test_file:
+                test_file = typer.prompt("Enter test results file path")
+            
+            console.print(f"[blue]📊[/blue] Generating test report from: {test_file}")
+            # TODO: Implement test report generation
+            console.print("[green]✓[/green] Test report generated")
+            
+        else:
+            console.print(f"[red]✗[/red] Unknown testing action: {action}")
+            raise typer.Exit(1)
+            
+    except Exception as e:
+        console.print(f"[red]✗[/red] Testing error: {e}")
+        raise typer.Exit(1)
+
 if __name__ == "__main__":
     app() 

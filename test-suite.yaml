@@ -1,0 +1,157 @@
+base_url: http://localhost:8000
+description: Automatically generated tests from API configuration
+name: Auto-generated Test Suite
+setup_hooks: []
+teardown_hooks: []
+test_cases:
+- assertions:
+  - name: Response is JSON object
+    operator: exists
+    path: $
+    type: json_path
+  body: {}
+  description: Test for GET /api/health
+  expected_schema: null
+  expected_status: 200
+  headers: {}
+  method: GET
+  name: GET__api_health
+  retries: 0
+  timeout: 30
+  url: /api/health
+- assertions:
+  - name: Response is JSON object
+    operator: exists
+    path: $
+    type: json_path
+  body: {}
+  description: Test for GET /api/users
+  expected_schema: null
+  expected_status: 200
+  headers: {}
+  method: GET
+  name: GET__api_users
+  retries: 0
+  timeout: 30
+  url: /api/users
+- assertions:
+  - name: Response is JSON object
+    operator: exists
+    path: $
+    type: json_path
+  body: {}
+  description: Test for GET /api/users/{user_id}
+  expected_schema: null
+  expected_status: 200
+  headers: {}
+  method: GET
+  name: GET__api_users_user_id
+  retries: 0
+  timeout: 30
+  url: /api/users/{user_id}
+- assertions:
+  - name: Response is JSON object
+    operator: exists
+    path: $
+    type: json_path
+  body: {}
+  description: Test for POST /api/users
+  expected_schema: null
+  expected_status: 200
+  headers: {}
+  method: POST
+  name: POST__api_users
+  retries: 0
+  timeout: 30
+  url: /api/users
+- assertions:
+  - name: Response is JSON object
+    operator: exists
+    path: $
+    type: json_path
+  body: {}
+  description: Test for PUT /api/users/{user_id}
+  expected_schema: null
+  expected_status: 200
+  headers: {}
+  method: PUT
+  name: PUT__api_users_user_id
+  retries: 0
+  timeout: 30
+  url: /api/users/{user_id}
+- assertions:
+  - name: Response is JSON object
+    operator: exists
+    path: $
+    type: json_path
+  body: {}
+  description: Test for DELETE /api/users/{user_id}
+  expected_schema: null
+  expected_status: 200
+  headers: {}
+  method: DELETE
+  name: DELETE__api_users_user_id
+  retries: 0
+  timeout: 30
+  url: /api/users/{user_id}
+- assertions:
+  - name: Response is JSON object
+    operator: exists
+    path: $
+    type: json_path
+  body: {}
+  description: Test for GET /api/search
+  expected_schema: null
+  expected_status: 200
+  headers: {}
+  method: GET
+  name: GET__api_search
+  retries: 0
+  timeout: 30
+  url: /api/search
+- assertions:
+  - name: Response is JSON object
+    operator: exists
+    path: $
+    type: json_path
+  body: {}
+  description: Test for POST /api/echo
+  expected_schema: null
+  expected_status: 200
+  headers: {}
+  method: POST
+  name: POST__api_echo
+  retries: 0
+  timeout: 30
+  url: /api/echo
+- assertions:
+  - name: Response is JSON object
+    operator: exists
+    path: $
+    type: json_path
+  body: {}
+  description: Test for GET /api/slow
+  expected_schema: null
+  expected_status: 200
+  headers: {}
+  method: GET
+  name: GET__api_slow
+  retries: 0
+  timeout: 30
+  url: /api/slow
+- assertions:
+  - name: Response is JSON object
+    operator: exists
+    path: $
+    type: json_path
+  body: {}
+  description: Test for GET /api/error
+  expected_schema: null
+  expected_status: 200
+  headers: {}
+  method: GET
+  name: GET__api_error
+  retries: 0
+  timeout: 30
+  url: /api/error
+variables: {}

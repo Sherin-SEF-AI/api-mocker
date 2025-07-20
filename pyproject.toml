@@ -1,22 +1,67 @@
 [project]
 name = "api-mocker"
-version = "0.1.3"
-description = "The industry-standard, production-ready, free API mocking and development acceleration tool."
+version = "0.2.0"
+description = "🚀 The Ultimate API Development Acceleration Tool - 3000+ Downloads! Production-ready FastAPI mock server with AI-powered generation, analytics, testing framework, and real-time dashboard."
 authors = [
     { name = "sherin joseph roy", email = "sherin.joseph2217@gmail.com" }
 ]
 readme = "PYPI_DESCRIPTION.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.8"
-keywords = ["api", "mock", "mocking", "development", "testing", "openapi", "swagger", "cli", "devops"]
+keywords = [
+    "api-mocking", 
+    "mock-server", 
+    "development-tools", 
+    "fastapi", 
+    "testing", 
+    "microservices", 
+    "api-testing", 
+    "swagger", 
+    "openapi", 
+    "postman", 
+    "rest-api", 
+    "http-mocking", 
+    "development-acceleration", 
+    "api-development", 
+    "backend-testing",
+    "api-simulation",
+    "mock-api",
+    "api-prototyping",
+    "integration-testing",
+    "web-development",
+    "cli",
+    "devops",
+    "analytics",
+    "rate-limiting",
+    "caching",
+    "authentication"
+]
 classifiers = [
-    "Programming Language :: Python :: 3",
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Information Technology",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Development Status :: 3 - Alpha",
-    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Testing",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Testing :: Mocking",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Software Development :: Quality Assurance",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities",
+    "Framework :: FastAPI",
+    "Framework :: Pytest",
+    "Environment :: Web Environment",
+    "Environment :: Console",
+    "Typing :: Typed"
 ]
 dependencies = [
     "typer>=0.9.0",
@@ -40,6 +85,11 @@ advanced = [
 [project.urls]
 Homepage = "https://github.com/Sherin-SEF-AI/api-mocker"
 Repository = "https://github.com/Sherin-SEF-AI/api-mocker.git"
+Documentation = "https://github.com/Sherin-SEF-AI/api-mocker#readme"
+"Bug Tracker" = "https://github.com/Sherin-SEF-AI/api-mocker/issues"
+"Source Code" = "https://github.com/Sherin-SEF-AI/api-mocker"
+"Download Statistics" = "https://pepy.tech/project/api-mocker"
+"PyPI Page" = "https://pypi.org/project/api-mocker/"
 
 [project.scripts]
 api-mocker = "api_mocker.cli:main"
