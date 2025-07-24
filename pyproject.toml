@@ -1,7 +1,7 @@
 [project]
 name = "api-mocker"
-version = "0.3.0"
-description = "🚀 The Ultimate API Development Acceleration Tool - 3000+ Downloads! Production-ready FastAPI mock server with AI-powered generation, scenario-based mocking, smart response matching, enhanced analytics, and comprehensive testing framework."
+version = "0.4.0"
+description = "🚀 The Ultimate API Development Acceleration Tool - 3000+ Downloads! Production-ready FastAPI mock server with AI-powered generation, scenario-based mocking, smart response matching, enhanced analytics, comprehensive testing framework, and advanced mock response management system."
 authors = [
     { name = "sherin joseph roy", email = "sherin.joseph2217@gmail.com" }
 ]

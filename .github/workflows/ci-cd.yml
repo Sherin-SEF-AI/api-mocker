@@ -1,0 +1,344 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  release:
+    types: [ published ]
+
+env:
+  PYTHON_VERSION: "3.9"
+  PYTHON_VERSION_MATRIX: |
+    [
+      3.8,
+      3.9,
+      "3.10",
+      "3.11",
+      "3.12"
+    ]
+
+jobs:
+  # Lint and format check
+  lint:
+    name: Lint and Format Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort mypy pre-commit
+        pip install -e .
+        
+    - name: Run pre-commit hooks
+      run: |
+        pre-commit run --all-files
+        
+    - name: Run linting checks
+      run: |
+        flake8 src/ tests/ --max-line-length=88 --extend-ignore=E203,W503
+        black --check src/ tests/
+        isort --check-only src/ tests/
+        mypy src/ --ignore-missing-imports
+
+  # Test across multiple Python versions
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ${{ fromJson(env.PYTHON_VERSION_MATRIX) }}
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest pytest-cov pytest-mock pytest-asyncio
+        pip install -e .
+        
+    - name: Run tests with coverage
+      run: |
+        pytest tests/ -v --cov=src/api_mocker --cov-report=xml --cov-report=html
+        
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+  # Integration tests
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest httpx
+        pip install -e .
+        
+    - name: Run integration tests
+      run: |
+        pytest tests/test_integration.py -v --tb=short
+        
+    - name: Test CLI functionality
+      run: |
+        api-mocker --help
+        api-mocker start --help
+        api-mocker scenarios --help
+        api-mocker smart-matching --help
+        api-mocker enhanced-analytics --help
+
+  # Security scan
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Run Bandit security scan
+      uses: python-security/bandit-action@v1
+      with:
+        path: src/
+        level: low
+        confidence: medium
+        
+    - name: Run Safety check
+      run: |
+        pip install safety
+        safety check
+
+  # Build and test package
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    needs: [test, integration, security]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install build dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build twine
+        
+    - name: Build package
+      run: |
+        python -m build
+        
+    - name: Check package
+      run: |
+        twine check dist/*
+        
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: dist
+        path: dist/
+
+  # Deploy to PyPI (only on release)
+  deploy:
+    name: Deploy to PyPI
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'release'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Download build artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: dist
+        path: dist/
+        
+    - name: Install twine
+      run: |
+        python -m pip install --upgrade pip
+        pip install twine
+        
+    - name: Deploy to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: |
+        twine upload dist/*
+        
+    - name: Create GitHub release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## What's New
+          
+          ### Features
+          - Enhanced mock response management
+          - Comprehensive testing framework
+          - Advanced analytics and insights
+          - Scenario-based mocking
+          - Smart response matching
+          
+          ### Improvements
+          - Better error handling
+          - Performance optimizations
+          - Enhanced documentation
+          
+          ### Bug Fixes
+          - Fixed various edge cases
+          - Improved compatibility
+          
+          ## Installation
+          
+          ```bash
+          pip install api-mocker
+          ```
+          
+          ## Documentation
+          
+          See the [README](https://github.com/${{ github.repository }}) for detailed usage instructions.
+        draft: false
+        prerelease: false
+
+  # Documentation deployment
+  docs:
+    name: Deploy Documentation
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install documentation dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install mkdocs mkdocs-material pymdown-extensions
+        
+    - name: Build documentation
+      run: |
+        mkdocs build
+        
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./site
+
+  # Performance testing
+  performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest-benchmark
+        pip install -e .
+        
+    - name: Run performance benchmarks
+      run: |
+        pytest tests/test_performance.py --benchmark-only
+        
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v3
+      with:
+        name: benchmark-results
+        path: .benchmarks/
+
+  # Dependency updates
+  dependabot:
+    name: Dependency Updates
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .
+        
+    - name: Run tests with updated dependencies
+      run: |
+        pytest tests/ -v
+        
+    - name: Comment on PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: '✅ All tests passed with updated dependencies!'
+          }) 

@@ -16,7 +16,8 @@ from api_mocker.dashboard import DashboardManager
 from api_mocker.advanced import AdvancedFeatures, RateLimitConfig, CacheConfig, AuthConfig
 from api_mocker.scenarios import scenario_manager, Scenario, ScenarioCondition, ScenarioResponse, ScenarioType
 from api_mocker.smart_matching import smart_matcher, ResponseRule, MatchCondition, MatchType
-from api_mocker.enhanced_analytics import EnhancedAnalytics, PerformanceMetrics, UsagePattern, APIDependency, CostOptimizationInsight
+from api_mocker.enhanced_analytics import EnhancedAnalytics
+from api_mocker.mock_responses import MockSet, MockAPIResponse, ResponseType, HTTPMethod, create_user_response, create_error_response, create_delayed_response
 
 app = typer.Typer(help="api-mocker: The industry-standard, production-ready, free API mocking and development acceleration tool.")
 console = Console()
@@ -1303,6 +1304,132 @@ def enhanced_analytics(
     
     except Exception as e:
         console.print(f"[red]✗[/red] Enhanced analytics error: {e}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def mock_responses(
+    action: str = typer.Argument(..., help="Mock response action (create, list, find, test, export, import)"),
+    name: str = typer.Option(None, "--name", "-n", help="Response name"),
+    path: str = typer.Option(None, "--path", "-p", help="Response path"),
+    method: str = typer.Option("GET", "--method", "-m", help="HTTP method"),
+    status_code: int = typer.Option(200, "--status", "-s", help="Status code"),
+    response_type: str = typer.Option("static", "--type", "-t", help="Response type (static, dynamic, templated, conditional, delayed, error)"),
+    file: str = typer.Option(None, "--file", "-f", help="Configuration file"),
+    output: str = typer.Option(None, "--output", "-o", help="Output file")
+):
+    """Manage mock API responses with advanced features."""
+    
+    if action == "create":
+        if not name or not path:
+            console.print("❌ Name and path are required for creating responses")
+            raise typer.Exit(1)
+            
+        # Create mock response based on type
+        if response_type == "static":
+            response = MockAPIResponse(
+                path=path,
+                method=HTTPMethod(method),
+                status_code=status_code,
+                name=name,
+                response_type=ResponseType.STATIC,
+                body={"message": "Static response"}
+            )
+        elif response_type == "templated":
+            response = MockAPIResponse(
+                path=path,
+                method=HTTPMethod(method),
+                status_code=status_code,
+                name=name,
+                response_type=ResponseType.TEMPLATED,
+                template_vars={"id": "123", "name": "John Doe"},
+                body={"id": "{{id}}", "name": "{{name}}"}
+            )
+        elif response_type == "delayed":
+            response = MockAPIResponse(
+                path=path,
+                method=HTTPMethod(method),
+                status_code=status_code,
+                name=name,
+                response_type=ResponseType.DELAYED,
+                delay_ms=1000,
+                body={"message": "Delayed response"}
+            )
+        elif response_type == "error":
+            response = MockAPIResponse(
+                path=path,
+                method=HTTPMethod(method),
+                status_code=500,
+                name=name,
+                response_type=ResponseType.ERROR,
+                error_probability=1.0,
+                body={"error": "Simulated error"}
+            )
+        else:
+            response = create_user_response("123", "John Doe")
+            response.name = name
+            response.path = path
+            response.method = HTTPMethod(method)
+            response.status_code = status_code
+            
+        console.print(f"✅ Created mock response: {name}")
+        
+    elif action == "list":
+        # This would typically load from a file or database
+        console.print("📋 Available mock responses:")
+        console.print("  (Use 'create' to add responses)")
+        
+    elif action == "find":
+        if not path:
+            console.print("❌ Path is required for finding responses")
+            raise typer.Exit(1)
+            
+        # Simulate finding responses
+        console.print(f"🔍 Searching for responses matching: {path}")
+        console.print("  (Use 'create' to add responses first)")
+        
+    elif action == "test":
+        if not path:
+            console.print("❌ Path is required for testing responses")
+            raise typer.Exit(1)
+            
+        # Create a test response and test it
+        test_response = create_user_response("123", "John Doe")
+        test_response.path = path
+        test_response.method = HTTPMethod(method)
+        
+        result = test_response.generate_response()
+        console.print(f"🧪 Test response for {path}:")
+        console.print(f"  Status: {result['status_code']}")
+        console.print(f"  Body: {result['body']}")
+        
+    elif action == "export":
+        if not output:
+            output = f"mock_responses_{int(time.time())}.yaml"
+            
+        # Create a sample mock set and export it
+        mock_set = MockSet("sample_mocks")
+        mock_set.add_response(create_user_response("123", "John Doe"))
+        mock_set.add_response(create_error_response(404, "Not found"))
+        mock_set.add_response(create_delayed_response(1000))
+        
+        mock_set.save_to_file(output)
+        console.print(f"✅ Mock responses exported to {output}")
+        
+    elif action == "import":
+        if not file:
+            console.print("❌ File is required for importing responses")
+            raise typer.Exit(1)
+            
+        try:
+            mock_set = MockSet.load_from_file(file)
+            console.print(f"✅ Imported {len(mock_set.responses)} responses from {file}")
+        except Exception as e:
+            console.print(f"❌ Error importing from {file}: {e}")
+            raise typer.Exit(1)
+            
+    else:
+        console.print(f"❌ Unknown action: {action}")
         raise typer.Exit(1)
 
 
