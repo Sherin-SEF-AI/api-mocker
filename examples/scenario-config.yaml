@@ -1,0 +1,198 @@
+# Scenario-Based Mocking Configuration Example
+# This file demonstrates how to configure different scenarios for API mocking
+
+scenarios:
+  # Happy Path Scenario - Default successful responses
+  happy_path:
+    name: "happy_path"
+    description: "Default happy path scenario with successful responses"
+    scenario_type: "happy_path"
+    active: true
+    condition:
+      header_match: {}
+      query_param_match: {}
+      body_match: {}
+      probability: 1.0
+    responses:
+      "/users":
+        status_code: 200
+        headers:
+          Content-Type: "application/json"
+        body:
+          users:
+            - id: 1
+              name: "John Doe"
+              email: "john@example.com"
+              status: "active"
+            - id: 2
+              name: "Jane Smith"
+              email: "jane@example.com"
+              status: "active"
+        delay: 0
+        dynamic: false
+      
+      "/users/{id}":
+        status_code: 200
+        headers:
+          Content-Type: "application/json"
+        body:
+          id: "{{ path_params.id }}"
+          name: "User {{ path_params.id }}"
+          email: "user{{ path_params.id }}@example.com"
+          status: "active"
+        delay: 0
+        dynamic: true
+
+  # Error Scenario - Simulate server errors
+  error_scenario:
+    name: "error_scenario"
+    description: "Scenario for testing error handling"
+    scenario_type: "error_scenario"
+    active: false
+    condition:
+      header_match:
+        x-test-error: "true"
+      probability: 1.0
+    responses:
+      "/users":
+        status_code: 500
+        headers:
+          Content-Type: "application/json"
+        body:
+          error: "Internal Server Error"
+          code: "INTERNAL_ERROR"
+          message: "Something went wrong on our end"
+        delay: 0.5
+        error_message: "Internal Server Error"
+        dynamic: false
+      
+      "/users/{id}":
+        status_code: 404
+        headers:
+          Content-Type: "application/json"
+        body:
+          error: "User Not Found"
+          code: "NOT_FOUND"
+          message: "The requested user does not exist"
+        delay: 0.2
+        error_message: "User Not Found"
+        dynamic: false
+
+  # Performance Test Scenario - Simulate slow responses
+  performance_test:
+    name: "performance_test"
+    description: "Scenario for performance testing with delays"
+    scenario_type: "performance_test"
+    active: false
+    condition:
+      header_match:
+        x-performance-test: "true"
+      probability: 1.0
+    responses:
+      "*":
+        status_code: 200
+        headers:
+          Content-Type: "application/json"
+        body:
+          message: "Performance test response"
+          timestamp: "{{ datetime.now().isoformat() }}"
+        delay: 2.5
+        dynamic: true
+
+  # A/B Testing Scenario - Different response variants
+  a_b_test:
+    name: "a_b_test"
+    description: "A/B testing scenario with two variants"
+    scenario_type: "a_b_test"
+    active: false
+    condition:
+      probability: 0.5
+    responses:
+      "variant_a":
+        status_code: 200
+        headers:
+          Content-Type: "application/json"
+          x-variant: "A"
+        body:
+          variant: "A"
+          message: "Variant A response"
+          features:
+            - "feature_a"
+            - "feature_b"
+        delay: 0
+        dynamic: false
+      
+      "variant_b":
+        status_code: 200
+        headers:
+          Content-Type: "application/json"
+          x-variant: "B"
+        body:
+          variant: "B"
+          message: "Variant B response"
+          features:
+            - "feature_b"
+            - "feature_c"
+        delay: 0
+        dynamic: false
+
+  # Edge Case Scenario - Boundary conditions
+  edge_case:
+    name: "edge_case"
+    description: "Scenario for testing edge cases and boundary conditions"
+    scenario_type: "edge_case"
+    active: false
+    condition:
+      header_match:
+        x-edge-case: "true"
+      probability: 1.0
+    responses:
+      "/users":
+        status_code: 200
+        headers:
+          Content-Type: "application/json"
+        body:
+          users: []
+          total: 0
+          message: "No users found"
+        delay: 0
+        dynamic: false
+      
+      "/users/0":
+        status_code: 400
+        headers:
+          Content-Type: "application/json"
+        body:
+          error: "Invalid User ID"
+          code: "INVALID_ID"
+          message: "User ID must be greater than 0"
+        delay: 0
+        error_message: "Invalid User ID"
+        dynamic: false
+
+# Global scenario settings
+scenario_settings:
+  default_scenario: "happy_path"
+  auto_switch: false
+  switch_interval: 300  # seconds
+  logging: true
+  analytics: true
+
+# Scenario activation triggers
+triggers:
+  time_based:
+    - scenario: "performance_test"
+      time_window:
+        start: "09:00"
+        end: "17:00"
+      days: ["monday", "tuesday", "wednesday", "thursday", "friday"]
+  
+  load_based:
+    - scenario: "error_scenario"
+      threshold: 1000  # requests per minute
+      probability: 0.1
+  
+  pattern_based:
+    - scenario: "edge_case"
+      pattern: ".*test.*"
+      probability: 0.3 

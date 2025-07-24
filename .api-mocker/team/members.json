@@ -1,0 +1,35 @@
+{
+  "bf58b6ac-080f-4ba1-8ef3-12646d42b35b": {
+    "user_id": "bf58b6ac-080f-4ba1-8ef3-12646d42b35b",
+    "username": "testuser",
+    "email": "test@example.com",
+    "role": "viewer",
+    "joined_at": "2025-07-20T13:06:45.901699",
+    "last_active": "2025-07-20T13:06:45.901710",
+    "permissions": [
+      "read"
+    ]
+  },
+  "e877fb51-b447-4a70-ba9b-010844d7ada2": {
+    "user_id": "e877fb51-b447-4a70-ba9b-010844d7ada2",
+    "username": "testuser",
+    "email": "test@example.com",
+    "role": "viewer",
+    "joined_at": "2025-07-20T13:07:15.068897",
+    "last_active": "2025-07-20T13:07:15.068909",
+    "permissions": [
+      "read"
+    ]
+  },
+  "745a2c43-6044-46c7-b950-1cf84bff7529": {
+    "user_id": "745a2c43-6044-46c7-b950-1cf84bff7529",
+    "username": "testuser2",
+    "email": "test2@example.com",
+    "role": "viewer",
+    "joined_at": "2025-07-20T13:09:47.561212",
+    "last_active": "2025-07-20T13:09:47.561224",
+    "permissions": [
+      "read"
+    ]
+  }
+}

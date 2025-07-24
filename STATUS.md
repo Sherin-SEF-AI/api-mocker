@@ -31,6 +31,30 @@
 - **Test Reports**: Detailed test results and performance reports
 - **Variable Management**: Dynamic variable substitution in tests
 
+### Scenario-Based Mocking
+- **Multiple Scenarios**: Happy path, error states, edge cases, performance testing, A/B testing
+- **Scenario Switching**: Activate scenarios via headers, query params, or programmatically
+- **Conditional Responses**: Responses based on request data, headers, and time windows
+- **A/B Testing Support**: Weighted random selection for different response variants
+- **Scenario Management**: Create, export, import, and manage scenarios via CLI
+- **Scenario Analytics**: Track scenario usage and activation history
+
+### Smart Response Matching
+- **Intelligent Matching**: Request body analysis for response selection
+- **Header-Based Routing**: Route responses based on headers and API versions
+- **Query Parameter Matching**: Conditional responses based on query parameters
+- **Custom Logic**: Custom functions for complex matching conditions
+- **Priority System**: Rule priority and weighted selection for multiple matches
+- **Rule Management**: Create, test, export, and import matching rules via CLI
+
+### Enhanced Analytics & Insights
+- **Performance Benchmarking**: P50, P95, P99 response times and throughput analysis
+- **Usage Pattern Analysis**: Peak hours, user agents, IP addresses, request patterns
+- **API Dependency Mapping**: Detect and analyze API dependencies and correlations
+- **Cost Optimization Insights**: Identify performance issues and cost savings opportunities
+- **Real-time Monitoring**: Live metrics and alerting for performance issues
+- **Advanced Export**: Export analytics in JSON, CSV, and other formats
+
 ### Analytics & Monitoring
 - **Real-time Analytics**: Comprehensive request tracking and metrics collection
 - **Web Dashboard**: Beautiful real-time dashboard with charts and visualizations
@@ -62,6 +86,9 @@
 - **`ai`**: AI-powered mock data generation and management
 
 - **`testing`**: Advanced testing framework for comprehensive API testing
+- **`scenarios`**: Manage scenario-based mocking (list, create, activate, export, import, stats)
+- **`smart-matching`**: Manage smart response matching rules (list, create, test, export, import, stats)
+- **`enhanced-analytics`**: Enhanced analytics with performance benchmarking and insights
 
 ### Plugin System
 - **Plugin System**: Extensible architecture with built-in plugins
@@ -108,23 +135,25 @@
 ## 📦 Package Status
 
 ### PyPI Upload
-- **Version**: 0.2.0 (Latest)
+- **Version**: 0.3.0 (Latest)
 - **Status**: Successfully uploaded to PyPI
 - **Downloads**: 3000+ downloads and growing
 - **Install Command**: `pip install api-mocker`
-- **New Features**: AI-powered generation, advanced testing framework, analytics dashboard, rate limiting, caching, JWT auth, health monitoring
+- **New Features**: AI-powered generation, scenario-based mocking, smart response matching, enhanced analytics, advanced testing framework, analytics dashboard, rate limiting, caching, JWT auth, health monitoring
 
 ### GitHub Repository
 - **Status**: Successfully pushed to GitHub
 - **Repository**: Available for collaboration
 
-## 🚀 Latest Release (v0.2.0) - Streamlined Edition
+## 🚀 Latest Release (v0.3.0) - Advanced Features Edition
 
 ### New Features Added
 - **🤖 AI-Powered Mock Generation**: Generate realistic mock data using OpenAI GPT models with fallback to Faker
 - **🧪 Advanced Testing Framework**: Comprehensive testing with performance testing and AI test generation
+- **🎭 Scenario-Based Mocking**: Multiple scenarios (happy path, error states, A/B testing) with conditional responses
+- **🧠 Smart Response Matching**: Intelligent response selection based on request analysis and custom rules
+- **📊 Enhanced Analytics & Insights**: Performance benchmarking, usage patterns, API dependencies, and cost optimization
 - **🔐 Enhanced Security**: API key management and role-based access control
-- **📊 Advanced Analytics**: Real-time metrics and performance monitoring
 - **⚡ Performance Optimization**: Caching, rate limiting, and health monitoring
 
 ### Production Ready

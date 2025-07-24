@@ -1,0 +1,18 @@
+routes:
+- method: GET
+  path: /api/health
+  response:
+    body:
+      status: healthy
+      timestamp: '{{timestamp}}'
+    status_code: 200
+- method: GET
+  path: /api/users
+  response:
+    body:
+      users: []
+    status_code: 200
+server:
+  host: 127.0.0.1
+  port: 8000
+  reload: true

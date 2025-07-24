@@ -14,6 +14,9 @@ from api_mocker.plugins import PluginManager, BUILTIN_PLUGINS
 from api_mocker.analytics import AnalyticsManager
 from api_mocker.dashboard import DashboardManager
 from api_mocker.advanced import AdvancedFeatures, RateLimitConfig, CacheConfig, AuthConfig
+from api_mocker.scenarios import scenario_manager, Scenario, ScenarioCondition, ScenarioResponse, ScenarioType
+from api_mocker.smart_matching import smart_matcher, ResponseRule, MatchCondition, MatchType
+from api_mocker.enhanced_analytics import EnhancedAnalytics, PerformanceMetrics, UsagePattern, APIDependency, CostOptimizationInsight
 
 app = typer.Typer(help="api-mocker: The industry-standard, production-ready, free API mocking and development acceleration tool.")
 console = Console()
@@ -900,6 +903,408 @@ def testing(
     except Exception as e:
         console.print(f"[red]✗[/red] Testing error: {e}")
         raise typer.Exit(1)
+
+
+@app.command()
+def scenarios(
+    action: str = typer.Argument(..., help="Scenario action (list, create, activate, export, import, stats)"),
+    scenario_name: str = typer.Option(None, "--name", help="Scenario name"),
+    scenario_type: str = typer.Option("happy_path", "--type", help="Scenario type (happy_path, error_scenario, edge_case, performance_test, a_b_test)"),
+    config_file: str = typer.Option(None, "--config", help="Scenario configuration file"),
+    output_file: str = typer.Option(None, "--output", help="Output file for export"),
+):
+    """Manage scenario-based mocking."""
+    try:
+        if action == "list":
+            scenarios = scenario_manager.list_scenarios()
+            if not scenarios:
+                console.print("[yellow]No scenarios found. Create one with 'scenarios create'[/yellow]")
+                return
+            
+            table = Table(title="Available Scenarios")
+            table.add_column("Name", style="cyan")
+            table.add_column("Type", style="green")
+            table.add_column("Active", style="yellow")
+            table.add_column("Description", style="white")
+            
+            for name in scenarios:
+                scenario = scenario_manager.get_scenario(name)
+                if scenario:
+                    table.add_row(
+                        name,
+                        scenario.scenario_type.value,
+                        "✓" if scenario.active else "✗",
+                        scenario.description
+                    )
+            
+            console.print(table)
+        
+        elif action == "create":
+            if not scenario_name:
+                console.print("[red]✗[/red] Scenario name is required")
+                raise typer.Exit(1)
+            
+            if scenario_type == "happy_path":
+                scenario = scenario_manager.create_happy_path_scenario()
+            elif scenario_type == "error_scenario":
+                scenario = scenario_manager.create_error_scenario("server_error")
+            elif scenario_type == "performance_test":
+                scenario = scenario_manager.create_performance_test_scenario()
+            elif scenario_type == "a_b_test":
+                scenario = scenario_manager.create_a_b_test_scenario()
+            else:
+                console.print(f"[red]✗[/red] Unknown scenario type: {scenario_type}")
+                raise typer.Exit(1)
+            
+            scenario.name = scenario_name
+            scenario_manager.add_scenario(scenario)
+            console.print(f"[green]✓[/green] Created scenario: {scenario_name}")
+        
+        elif action == "activate":
+            if not scenario_name:
+                console.print("[red]✗[/red] Scenario name is required")
+                raise typer.Exit(1)
+            
+            if scenario_manager.activate_scenario(scenario_name):
+                console.print(f"[green]✓[/green] Activated scenario: {scenario_name}")
+            else:
+                console.print(f"[red]✗[/red] Scenario not found: {scenario_name}")
+                raise typer.Exit(1)
+        
+        elif action == "export":
+            if not output_file:
+                output_file = "scenarios.json"
+            
+            data = scenario_manager.export_scenarios()
+            with open(output_file, 'w') as f:
+                f.write(data)
+            console.print(f"[green]✓[/green] Exported scenarios to: {output_file}")
+        
+        elif action == "import":
+            if not config_file:
+                console.print("[red]✗[/red] Config file is required")
+                raise typer.Exit(1)
+            
+            with open(config_file, 'r') as f:
+                data = f.read()
+            
+            scenario_manager.import_scenarios(data)
+            console.print(f"[green]✓[/green] Imported scenarios from: {config_file}")
+        
+        elif action == "stats":
+            stats = scenario_manager.get_scenario_statistics()
+            
+            table = Table(title="Scenario Statistics")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="green")
+            
+            table.add_row("Total Scenarios", str(stats["total_scenarios"]))
+            table.add_row("Active Scenarios", str(stats["active_scenarios"]))
+            table.add_row("Current Active", stats["current_active"] or "None")
+            
+            for scenario_type, count in stats["scenario_types"].items():
+                table.add_row(f"Type: {scenario_type}", str(count))
+            
+            console.print(table)
+        
+        else:
+            console.print(f"[red]✗[/red] Unknown action: {action}")
+            raise typer.Exit(1)
+    
+    except Exception as e:
+        console.print(f"[red]✗[/red] Scenario error: {e}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def smart_matching(
+    action: str = typer.Argument(..., help="Smart matching action (list, create, test, export, import, stats)"),
+    rule_name: str = typer.Option(None, "--name", help="Rule name"),
+    rule_type: str = typer.Option(None, "--type", help="Rule type (user_type, api_version, premium_user, rate_limit, error, performance)"),
+    config_file: str = typer.Option(None, "--config", help="Rule configuration file"),
+    output_file: str = typer.Option(None, "--output", help="Output file for export"),
+    test_request: str = typer.Option(None, "--test-request", help="Test request JSON"),
+):
+    """Manage smart response matching rules."""
+    try:
+        if action == "list":
+            rules = smart_matcher.rules
+            if not rules:
+                console.print("[yellow]No rules found. Create one with 'smart-matching create'[/yellow]")
+                return
+            
+            table = Table(title="Smart Matching Rules")
+            table.add_column("Name", style="cyan")
+            table.add_column("Priority", style="green")
+            table.add_column("Weight", style="yellow")
+            table.add_column("Conditions", style="white")
+            
+            for rule in rules:
+                conditions = ", ".join([f"{c.field}={c.value}" for c in rule.conditions[:2]])
+                if len(rule.conditions) > 2:
+                    conditions += "..."
+                
+                table.add_row(
+                    rule.name,
+                    str(rule.priority),
+                    str(rule.weight),
+                    conditions
+                )
+            
+            console.print(table)
+        
+        elif action == "create":
+            if not rule_name or not rule_type:
+                console.print("[red]✗[/red] Rule name and type are required")
+                raise typer.Exit(1)
+            
+            # Create sample response based on rule type
+            sample_response = {
+                "status_code": 200,
+                "body": {"message": f"Response for {rule_type} rule"},
+                "headers": {"Content-Type": "application/json"}
+            }
+            
+            if rule_type == "user_type":
+                rule = smart_matcher.create_user_type_rule("premium", sample_response)
+            elif rule_type == "api_version":
+                rule = smart_matcher.create_api_version_rule("v2", sample_response)
+            elif rule_type == "premium_user":
+                rule = smart_matcher.create_premium_user_rule(sample_response)
+            elif rule_type == "rate_limit":
+                rule = smart_matcher.create_rate_limit_rule(100, sample_response)
+            elif rule_type == "error":
+                rule = smart_matcher.create_error_rule("invalid_token", sample_response)
+            elif rule_type == "performance":
+                rule = smart_matcher.create_performance_rule((1, 3), sample_response)
+            else:
+                console.print(f"[red]✗[/red] Unknown rule type: {rule_type}")
+                raise typer.Exit(1)
+            
+            rule.name = rule_name
+            smart_matcher.add_rule(rule)
+            console.print(f"[green]✓[/green] Created rule: {rule_name}")
+        
+        elif action == "test":
+            if not test_request:
+                console.print("[red]✗[/red] Test request is required")
+                raise typer.Exit(1)
+            
+            try:
+                request_data = json.loads(test_request)
+            except json.JSONDecodeError:
+                console.print("[red]✗[/red] Invalid JSON in test request")
+                raise typer.Exit(1)
+            
+            response, rule = smart_matcher.find_matching_response(request_data)
+            
+            if response:
+                console.print(f"[green]✓[/green] Matched rule: {rule.name if rule else 'Default'}")
+                console.print(f"Response: {json.dumps(response, indent=2)}")
+            else:
+                console.print("[yellow]No matching rule found[/yellow]")
+        
+        elif action == "export":
+            if not output_file:
+                output_file = "smart_rules.json"
+            
+            data = smart_matcher.export_rules()
+            with open(output_file, 'w') as f:
+                f.write(data)
+            console.print(f"[green]✓[/green] Exported rules to: {output_file}")
+        
+        elif action == "import":
+            if not config_file:
+                console.print("[red]✗[/red] Config file is required")
+                raise typer.Exit(1)
+            
+            with open(config_file, 'r') as f:
+                data = f.read()
+            
+            smart_matcher.import_rules(data)
+            console.print(f"[green]✓[/green] Imported rules from: {config_file}")
+        
+        elif action == "stats":
+            stats = smart_matcher.get_matching_statistics()
+            
+            table = Table(title="Smart Matching Statistics")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="green")
+            
+            table.add_row("Total Rules", str(stats["total_rules"]))
+            table.add_row("No Match Count", str(stats["no_match_count"]))
+            
+            for rule_name, count in stats["rule_usage"].items():
+                table.add_row(f"Rule: {rule_name}", str(count))
+            
+            console.print(table)
+        
+        else:
+            console.print(f"[red]✗[/red] Unknown action: {action}")
+            raise typer.Exit(1)
+    
+    except Exception as e:
+        console.print(f"[red]✗[/red] Smart matching error: {e}")
+        raise typer.Exit(1)
+
+
+@app.command()
+def enhanced_analytics(
+    action: str = typer.Argument(..., help="Enhanced analytics action (performance, patterns, dependencies, insights, summary, export)"),
+    endpoint: str = typer.Option(None, "--endpoint", help="Specific endpoint to analyze"),
+    hours: int = typer.Option(24, "--hours", help="Time period for analysis (hours)"),
+    output_file: str = typer.Option(None, "--output", help="Output file for export"),
+    format: str = typer.Option("json", "--format", help="Export format (json, csv)"),
+):
+    """Enhanced analytics with performance benchmarking and insights."""
+    try:
+        # Create enhanced analytics instance
+        analytics = EnhancedAnalytics()
+        if action == "performance":
+            metrics = analytics.calculate_performance_metrics(endpoint, hours)
+            
+            if not metrics:
+                console.print("[yellow]No performance data found[/yellow]")
+                return
+            
+            table = Table(title=f"Performance Metrics (Last {hours} hours)")
+            table.add_column("Endpoint", style="cyan")
+            table.add_column("Method", style="green")
+            table.add_column("P50 (ms)", style="yellow")
+            table.add_column("P95 (ms)", style="yellow")
+            table.add_column("P99 (ms)", style="yellow")
+            table.add_column("Throughput", style="blue")
+            table.add_column("Error Rate", style="red")
+            
+            for metric in metrics:
+                table.add_row(
+                    metric.endpoint,
+                    metric.method,
+                    f"{metric.response_time_p50:.2f}",
+                    f"{metric.response_time_p95:.2f}",
+                    f"{metric.response_time_p99:.2f}",
+                    f"{metric.throughput:.2f}",
+                    f"{metric.error_rate:.2%}"
+                )
+            
+            console.print(table)
+        
+        elif action == "patterns":
+            patterns = analytics.analyze_usage_patterns(endpoint, hours//24)
+            
+            if not patterns:
+                console.print("[yellow]No usage pattern data found[/yellow]")
+                return
+            
+            table = Table(title=f"Usage Patterns (Last {hours//24} days)")
+            table.add_column("Endpoint", style="cyan")
+            table.add_column("Method", style="green")
+            table.add_column("Peak Hours", style="yellow")
+            table.add_column("Peak Days", style="blue")
+            table.add_column("Top User Agent", style="white")
+            
+            for pattern in patterns:
+                peak_hours = ", ".join(map(str, pattern.peak_hours[:3]))
+                peak_days = ", ".join(pattern.peak_days[:3])
+                top_ua = list(pattern.user_agents.keys())[0] if pattern.user_agents else "N/A"
+                
+                table.add_row(
+                    pattern.endpoint,
+                    pattern.method,
+                    peak_hours,
+                    peak_days,
+                    top_ua[:30] + "..." if len(top_ua) > 30 else top_ua
+                )
+            
+            console.print(table)
+        
+        elif action == "dependencies":
+            dependencies = analytics.detect_api_dependencies(hours)
+            
+            if not dependencies:
+                console.print("[yellow]No API dependencies found[/yellow]")
+                return
+            
+            table = Table(title=f"API Dependencies (Last {hours} hours)")
+            table.add_column("Source", style="cyan")
+            table.add_column("Target", style="green")
+            table.add_column("Type", style="yellow")
+            table.add_column("Confidence", style="blue")
+            table.add_column("Frequency", style="white")
+            table.add_column("Avg Latency (ms)", style="red")
+            
+            for dep in dependencies:
+                table.add_row(
+                    dep.source_endpoint,
+                    dep.target_endpoint,
+                    dep.dependency_type,
+                    f"{dep.confidence:.2%}",
+                    str(dep.frequency),
+                    f"{dep.avg_latency:.2f}"
+                )
+            
+            console.print(table)
+        
+        elif action == "insights":
+            insights = analytics.generate_cost_optimization_insights()
+            
+            if not insights:
+                console.print("[yellow]No cost optimization insights found[/yellow]")
+                return
+            
+            table = Table(title="Cost Optimization Insights")
+            table.add_column("Type", style="cyan")
+            table.add_column("Description", style="white")
+            table.add_column("Potential Savings", style="green")
+            table.add_column("Priority", style="yellow")
+            table.add_column("Recommendation", style="blue")
+            
+            for insight in insights:
+                table.add_row(
+                    insight.insight_type,
+                    insight.description[:50] + "..." if len(insight.description) > 50 else insight.description,
+                    f"${insight.potential_savings:.2f}",
+                    insight.priority,
+                    insight.recommendation[:50] + "..." if len(insight.recommendation) > 50 else insight.recommendation
+                )
+            
+            console.print(table)
+        
+        elif action == "summary":
+            summary = analytics.get_analytics_summary(hours)
+            
+            table = Table(title=f"Enhanced Analytics Summary ({summary['time_period']})")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="green")
+            
+            table.add_row("Total Requests", str(summary["total_requests"]))
+            table.add_row("Total Errors", str(summary["total_errors"]))
+            table.add_row("Error Rate", f"{summary['error_rate']:.2%}")
+            table.add_row("Avg Response Time", f"{summary['avg_response_time']:.2f}ms")
+            table.add_row("Endpoints Analyzed", str(summary["endpoints_analyzed"]))
+            table.add_row("Usage Patterns", str(summary["usage_patterns"]))
+            table.add_row("Dependencies Found", str(summary["dependencies_found"]))
+            table.add_row("Cost Insights", str(summary["cost_insights"]))
+            
+            console.print(table)
+        
+        elif action == "export":
+            if not output_file:
+                output_file = f"enhanced_analytics_{action}_{hours}h.{format}"
+            
+            data = analytics.export_analytics(format, hours)
+            with open(output_file, 'w') as f:
+                f.write(data)
+            console.print(f"[green]✓[/green] Exported analytics to: {output_file}")
+        
+        else:
+            console.print(f"[red]✗[/red] Unknown action: {action}")
+            raise typer.Exit(1)
+    
+    except Exception as e:
+        console.print(f"[red]✗[/red] Enhanced analytics error: {e}")
+        raise typer.Exit(1)
+
 
 if __name__ == "__main__":
     app() 

@@ -1,0 +1,94 @@
+{
+  "64b222c5-db26-46d9-8858-3a6f064017b0": {
+    "project_id": "64b222c5-db26-46d9-8858-3a6f064017b0",
+    "name": "Test Project",
+    "description": "A test project",
+    "owner_id": "745a2c43-6044-46c7-b950-1cf84bff7529",
+    "members": [
+      {
+        "user_id": "745a2c43-6044-46c7-b950-1cf84bff7529",
+        "username": "testuser2",
+        "email": "test2@example.com",
+        "role": "viewer",
+        "joined_at": "2025-07-20T13:09:47.561212",
+        "last_active": "2025-07-20T13:09:47.561224",
+        "permissions": [
+          "read"
+        ]
+      }
+    ],
+    "config": {},
+    "created_at": "2025-07-20T13:10:00.093095",
+    "updated_at": "2025-07-20T13:10:00.093104",
+    "version": "1.0.0"
+  },
+  "f1efdc15-074c-4ead-8f2c-688e82a522dc": {
+    "project_id": "f1efdc15-074c-4ead-8f2c-688e82a522dc",
+    "name": "test",
+    "description": "nothing to test\n",
+    "owner_id": "bf58b6ac-080f-4ba1-8ef3-12646d42b35b",
+    "members": [
+      {
+        "user_id": "bf58b6ac-080f-4ba1-8ef3-12646d42b35b",
+        "username": "testuser",
+        "email": "test@example.com",
+        "role": "viewer",
+        "joined_at": "2025-07-20T13:06:45.901699",
+        "last_active": "2025-07-20T13:06:45.901710",
+        "permissions": [
+          "read"
+        ]
+      }
+    ],
+    "config": {},
+    "created_at": "2025-07-20T13:10:31.409009",
+    "updated_at": "2025-07-20T13:10:31.409019",
+    "version": "1.0.0"
+  },
+  "a9c59300-ab93-4438-9dd5-d98373be12d5": {
+    "project_id": "a9c59300-ab93-4438-9dd5-d98373be12d5",
+    "name": "test",
+    "description": "nothing",
+    "owner_id": "bf58b6ac-080f-4ba1-8ef3-12646d42b35b",
+    "members": [
+      {
+        "user_id": "bf58b6ac-080f-4ba1-8ef3-12646d42b35b",
+        "username": "testuser",
+        "email": "test@example.com",
+        "role": "viewer",
+        "joined_at": "2025-07-20T13:06:45.901699",
+        "last_active": "2025-07-20T13:06:45.901710",
+        "permissions": [
+          "read"
+        ]
+      }
+    ],
+    "config": {},
+    "created_at": "2025-07-20T13:13:09.424372",
+    "updated_at": "2025-07-20T13:13:09.424384",
+    "version": "1.0.0"
+  },
+  "5b0f9643-cb9b-4c29-acb0-fe6be74ebd36": {
+    "project_id": "5b0f9643-cb9b-4c29-acb0-fe6be74ebd36",
+    "name": "test",
+    "description": "vdfg",
+    "owner_id": "bf58b6ac-080f-4ba1-8ef3-12646d42b35b",
+    "members": [
+      {
+        "user_id": "bf58b6ac-080f-4ba1-8ef3-12646d42b35b",
+        "username": "testuser",
+        "email": "test@example.com",
+        "role": "viewer",
+        "joined_at": "2025-07-20T13:06:45.901699",
+        "last_active": "2025-07-20T13:06:45.901710",
+        "permissions": [
+          "read"
+        ]
+      }
+    ],
+    "config": {},
+    "created_at": "2025-07-20T13:13:30.914095",
+    "updated_at": "2025-07-20T13:13:30.914105",
+    "version": "1.0.0"
+  }
+}

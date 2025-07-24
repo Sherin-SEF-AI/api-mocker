@@ -1,0 +1,300 @@
+# Enhanced Analytics Configuration Example
+# This file demonstrates how to configure advanced analytics and insights
+
+enhanced_analytics:
+  # Database configuration
+  database:
+    path: "api_mocker_analytics.db"
+    backup_enabled: true
+    backup_interval: 86400  # 24 hours
+    retention_days: 90
+    compression: true
+
+  # Performance metrics collection
+  performance_metrics:
+    enabled: true
+    collection_interval: 60  # seconds
+    metrics:
+      - response_time_p50
+      - response_time_p95
+      - response_time_p99
+      - throughput
+      - error_rate
+      - success_rate
+      - avg_response_size
+      - request_count
+      - error_count
+    
+    thresholds:
+      slow_response_time: 1000  # ms
+      high_error_rate: 0.05     # 5%
+      low_throughput: 10        # requests per second
+
+  # Usage pattern analysis
+  usage_patterns:
+    enabled: true
+    analysis_interval: 3600  # 1 hour
+    patterns:
+      - peak_hours
+      - peak_days
+      - user_agents
+      - ip_addresses
+      - request_sizes
+      - response_sizes
+      - common_headers
+      - common_query_params
+    
+    time_windows:
+      - 1_hour: 3600
+      - 24_hours: 86400
+      - 7_days: 604800
+      - 30_days: 2592000
+
+  # API dependency detection
+  dependency_detection:
+    enabled: true
+    detection_interval: 300  # 5 minutes
+    correlation_window: 5     # seconds
+    confidence_threshold: 0.7
+    min_frequency: 3
+    
+    dependency_types:
+      - calls
+      - depends_on
+      - similar_pattern
+      - temporal_correlation
+
+  # Cost optimization insights
+  cost_optimization:
+    enabled: true
+    analysis_interval: 3600  # 1 hour
+    
+    insights:
+      performance_optimization:
+        enabled: true
+        slow_endpoint_threshold: 1000  # ms
+        potential_savings_multiplier: 0.1
+        
+      error_reduction:
+        enabled: true
+        high_error_rate_threshold: 0.05  # 5%
+        cost_per_endpoint: 100  # USD
+        
+      response_optimization:
+        enabled: true
+        large_response_threshold: 10000  # bytes
+        cost_per_kb: 0.0001  # USD
+        
+      caching_opportunities:
+        enabled: true
+        repeat_request_threshold: 10
+        cache_hit_rate_threshold: 0.8
+        
+      rate_limiting_analysis:
+        enabled: true
+        burst_threshold: 100
+        sustained_threshold: 1000
+
+  # Real-time monitoring
+  real_time_monitoring:
+    enabled: true
+    update_interval: 5  # seconds
+    
+    alerts:
+      high_error_rate:
+        enabled: true
+        threshold: 0.1  # 10%
+        notification: "email"
+        
+      slow_response_time:
+        enabled: true
+        threshold: 2000  # ms
+        notification: "slack"
+        
+      high_throughput:
+        enabled: true
+        threshold: 1000  # requests per second
+        notification: "webhook"
+
+  # Data retention and cleanup
+  data_management:
+    retention_policies:
+      raw_requests: 30    # days
+      performance_metrics: 90   # days
+      usage_patterns: 180      # days
+      dependencies: 365        # days
+      cost_insights: 90        # days
+    
+    cleanup_schedule: "daily"
+    cleanup_time: "02:00"
+    
+    archiving:
+      enabled: true
+      archive_after: 30  # days
+      archive_format: "parquet"
+      compression: "gzip"
+
+  # Export and reporting
+  export:
+    formats:
+      - json
+      - csv
+      - parquet
+      - excel
+    
+    scheduled_exports:
+      daily_summary:
+        enabled: true
+        schedule: "0 6 * * *"  # 6 AM daily
+        format: "json"
+        include:
+          - performance_metrics
+          - usage_patterns
+          - cost_insights
+          
+      weekly_report:
+        enabled: true
+        schedule: "0 9 * * 1"  # 9 AM Monday
+        format: "excel"
+        include:
+          - performance_metrics
+          - usage_patterns
+          - dependencies
+          - cost_insights
+
+  # Integration settings
+  integrations:
+    # Webhook notifications
+    webhooks:
+      - name: "slack_alerts"
+        url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
+        events:
+          - "high_error_rate"
+          - "slow_response_time"
+        format: "json"
+        
+      - name: "email_notifications"
+        url: "https://api.sendgrid.com/v3/mail/send"
+        events:
+          - "daily_summary"
+          - "weekly_report"
+        format: "json"
+    
+    # External analytics platforms
+    external_analytics:
+      - name: "google_analytics"
+        enabled: false
+        tracking_id: "GA_TRACKING_ID"
+        
+      - name: "mixpanel"
+        enabled: false
+        project_token: "MIXPANEL_TOKEN"
+        
+      - name: "amplitude"
+        enabled: false
+        api_key: "AMPLITUDE_API_KEY"
+
+  # Security and privacy
+  security:
+    data_encryption:
+      enabled: true
+      algorithm: "AES-256"
+      
+    access_control:
+      enabled: true
+      allowed_ips: ["127.0.0.1", "192.168.1.0/24"]
+      
+    data_masking:
+      enabled: true
+      mask_fields:
+        - "headers.authorization"
+        - "body.password"
+        - "body.token"
+        - "ip_address"
+
+  # Performance optimization
+  performance:
+    # Database optimization
+    database:
+      connection_pool_size: 10
+      query_timeout: 30
+      enable_wal: true
+      
+    # Caching
+    caching:
+      enabled: true
+      cache_size: 1000
+      ttl: 300  # seconds
+      
+    # Background processing
+    background_processing:
+      enabled: true
+      worker_threads: 4
+      queue_size: 1000
+
+# Analytics dashboard configuration
+dashboard:
+  # Real-time charts
+  real_time_charts:
+    - name: "Request Rate"
+      type: "line"
+      data_source: "requests_per_second"
+      update_interval: 5
+      
+    - name: "Response Time"
+      type: "line"
+      data_source: "avg_response_time"
+      update_interval: 5
+      
+    - name: "Error Rate"
+      type: "line"
+      data_source: "error_rate"
+      update_interval: 5
+      
+    - name: "Top Endpoints"
+      type: "bar"
+      data_source: "endpoint_usage"
+      update_interval: 60
+      
+    - name: "API Dependencies"
+      type: "network"
+      data_source: "dependencies"
+      update_interval: 300
+
+  # Summary widgets
+  summary_widgets:
+    - name: "Total Requests"
+      type: "metric"
+      data_source: "total_requests"
+      
+    - name: "Success Rate"
+      type: "metric"
+      data_source: "success_rate"
+      
+    - name: "Avg Response Time"
+      type: "metric"
+      data_source: "avg_response_time"
+      
+    - name: "Active Endpoints"
+      type: "metric"
+      data_source: "active_endpoints"
+
+  # Cost optimization dashboard
+  cost_dashboard:
+    enabled: true
+    widgets:
+      - name: "Potential Savings"
+        type: "metric"
+        data_source: "total_potential_savings"
+        
+      - name: "Optimization Opportunities"
+        type: "list"
+        data_source: "cost_insights"
+        
+      - name: "Performance Issues"
+        type: "table"
+        data_source: "slow_endpoints"
+        
+      - name: "Error Hotspots"
+        type: "heatmap"
+        data_source: "error_patterns" 

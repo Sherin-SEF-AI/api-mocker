@@ -1,0 +1,273 @@
+# Smart Response Matching Configuration Example
+# This file demonstrates how to configure intelligent response selection based on request analysis
+
+smart_matching:
+  # Default response when no rules match
+  default_response:
+    status_code: 200
+    headers:
+      Content-Type: "application/json"
+    body:
+      message: "Default response"
+      timestamp: "{{ datetime.now().isoformat() }}"
+
+  # Response rules with conditions
+  rules:
+    # User Type Based Rule
+    premium_user_rule:
+      name: "premium_user_rule"
+      priority: 20
+      weight: 1.0
+      conditions:
+        - field: "body.user_type"
+          match_type: "exact"
+          value: "premium"
+          case_sensitive: false
+        - field: "headers.authorization"
+          match_type: "exists"
+      response:
+        status_code: 200
+        headers:
+          Content-Type: "application/json"
+          x-user-tier: "premium"
+        body:
+          message: "Premium user response"
+          features:
+            - "advanced_analytics"
+            - "priority_support"
+            - "unlimited_requests"
+          user_type: "premium"
+
+    # API Version Based Rule
+    api_v2_rule:
+      name: "api_v2_rule"
+      priority: 15
+      weight: 1.0
+      conditions:
+        - field: "headers.x-api-version"
+          match_type: "exact"
+          value: "v2"
+          case_sensitive: false
+      response:
+        status_code: 200
+        headers:
+          Content-Type: "application/json"
+          x-api-version: "v2"
+        body:
+          message: "API v2 response"
+          version: "2.0"
+          features:
+            - "enhanced_pagination"
+            - "field_selection"
+            - "bulk_operations"
+
+    # Rate Limiting Rule
+    rate_limit_rule:
+      name: "rate_limit_rule"
+      priority: 25
+      weight: 1.0
+      conditions:
+        - field: "request_count"
+          match_type: "greater_than"
+          value: 100
+      response:
+        status_code: 429
+        headers:
+          Content-Type: "application/json"
+          Retry-After: "60"
+          X-RateLimit-Limit: "100"
+          X-RateLimit-Remaining: "0"
+        body:
+          error: "Rate Limit Exceeded"
+          code: "RATE_LIMITED"
+          message: "Too many requests. Please try again later."
+          retry_after: 60
+
+    # Error Handling Rules
+    invalid_token_rule:
+      name: "invalid_token_rule"
+      priority: 30
+      weight: 1.0
+      conditions:
+        - field: "headers.authorization"
+          match_type: "regex"
+          value: "invalid|expired|malformed"
+          case_sensitive: false
+      response:
+        status_code: 401
+        headers:
+          Content-Type: "application/json"
+          WWW-Authenticate: "Bearer"
+        body:
+          error: "Unauthorized"
+          code: "INVALID_TOKEN"
+          message: "Invalid or expired authentication token"
+
+    missing_required_fields_rule:
+      name: "missing_required_fields_rule"
+      priority: 30
+      weight: 1.0
+      conditions:
+        - field: "body"
+          match_type: "custom"
+          custom_function: "check_required_fields"
+      response:
+        status_code: 400
+        headers:
+          Content-Type: "application/json"
+        body:
+          error: "Bad Request"
+          code: "MISSING_FIELDS"
+          message: "Required fields are missing"
+          required_fields: ["name", "email"]
+
+    # Performance Testing Rule
+    performance_test_rule:
+      name: "performance_test_rule"
+      priority: 5
+      weight: 1.0
+      conditions:
+        - field: "headers.x-performance-test"
+          match_type: "exists"
+      response:
+        status_code: 200
+        headers:
+          Content-Type: "application/json"
+          x-performance-test: "true"
+        body:
+          message: "Performance test response"
+          timestamp: "{{ datetime.now().isoformat() }}"
+          delay: "{{ random.uniform(1, 5) }}"
+
+    # Content Type Based Rule
+    json_only_rule:
+      name: "json_only_rule"
+      priority: 10
+      weight: 1.0
+      conditions:
+        - field: "headers.content-type"
+          match_type: "not_equals"
+          value: "application/json"
+      response:
+        status_code: 415
+        headers:
+          Content-Type: "application/json"
+        body:
+          error: "Unsupported Media Type"
+          code: "INVALID_CONTENT_TYPE"
+          message: "Only application/json content type is supported"
+
+    # Query Parameter Based Rule
+    pagination_rule:
+      name: "pagination_rule"
+      priority: 10
+      weight: 1.0
+      conditions:
+        - field: "query_params.page"
+          match_type: "greater_than"
+          value: 100
+      response:
+        status_code: 400
+        headers:
+          Content-Type: "application/json"
+        body:
+          error: "Invalid Page Number"
+          code: "INVALID_PAGE"
+          message: "Page number cannot exceed 100"
+
+    # Time-Based Rule
+    maintenance_window_rule:
+      name: "maintenance_window_rule"
+      priority: 35
+      weight: 1.0
+      conditions:
+        - field: "timestamp"
+          match_type: "custom"
+          custom_function: "check_maintenance_window"
+      response:
+        status_code: 503
+        headers:
+          Content-Type: "application/json"
+          Retry-After: "3600"
+        body:
+          error: "Service Unavailable"
+          code: "MAINTENANCE"
+          message: "Service is temporarily unavailable for maintenance"
+          estimated_resume: "{{ datetime.now() + timedelta(hours=1) }}"
+
+# Custom function definitions
+custom_functions:
+  check_required_fields:
+    description: "Check if required fields are present in request body"
+    code: |
+      def check_required_fields(body, request_data):
+          required = ["name", "email"]
+          if not body or not isinstance(body, dict):
+              return True
+          return not all(field in body for field in required)
+
+  check_maintenance_window:
+    description: "Check if current time is within maintenance window"
+    code: |
+      def check_maintenance_window(timestamp, request_data):
+          from datetime import datetime, time
+          now = datetime.now()
+          maintenance_start = time(2, 0)  # 2 AM
+          maintenance_end = time(4, 0)    # 4 AM
+          current_time = now.time()
+          return maintenance_start <= current_time <= maintenance_end
+
+# Rule evaluation settings
+evaluation_settings:
+  # Rule matching strategy
+  strategy: "priority_weighted"  # "priority_only", "weighted_random", "priority_weighted"
+  
+  # Fallback behavior
+  fallback_to_default: true
+  
+  # Logging
+  log_matches: true
+  log_no_matches: true
+  
+  # Performance
+  cache_results: true
+  cache_ttl: 300  # seconds
+  
+  # Analytics
+  track_rule_usage: true
+  track_match_performance: true
+
+# Rule templates for common patterns
+rule_templates:
+  user_authentication:
+    description: "Template for user authentication rules"
+    conditions:
+      - field: "headers.authorization"
+        match_type: "regex"
+        value: "Bearer .*"
+    response:
+      status_code: 200
+      headers:
+        x-authenticated: "true"
+
+  rate_limiting:
+    description: "Template for rate limiting rules"
+    conditions:
+      - field: "request_count"
+        match_type: "greater_than"
+        value: 100
+    response:
+      status_code: 429
+      headers:
+        Retry-After: "60"
+
+  error_simulation:
+    description: "Template for error simulation rules"
+    conditions:
+      - field: "headers.x-simulate-error"
+        match_type: "exists"
+    response:
+      status_code: 500
+      body:
+        error: "Simulated Error"
+        code: "SIMULATED_ERROR" 
