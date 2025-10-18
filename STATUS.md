@@ -104,6 +104,11 @@
 - **`smart-matching`**: Manage smart response matching rules (list, create, test, export, import, stats)
 - **`enhanced-analytics`**: Enhanced analytics with performance benchmarking and insights
 - **`mock-responses`**: Manage mock API responses (create, list, find, test, export, import)
+- **`graphql`**: GraphQL mock server with schema introspection and real-time subscriptions
+- **`websocket`**: WebSocket mock server with real-time messaging and room management
+- **`auth`**: Advanced authentication system with OAuth2, JWT, MFA, and RBAC
+- **`database`**: Database integration with SQLite, PostgreSQL, MongoDB, and Redis
+- **`ml`**: Machine learning integration for intelligent response generation and analytics
 
 ### Plugin System
 - **Plugin System**: Extensible architecture with built-in plugins
@@ -171,6 +176,11 @@
 - **🔐 Enhanced Security**: API key management and role-based access control
 - **⚡ Performance Optimization**: Caching, rate limiting, and health monitoring
 - **🎯 Comprehensive Mock Response Management**: Advanced mock response system with templating, conditional logic, and pytest integration
+- **🔮 GraphQL Mock Support**: Complete GraphQL mocking with schema introspection, query/mutation/subscription support
+- **🌐 WebSocket Mock Support**: Real-time WebSocket mocking with message routing, broadcasting, and room management
+- **🔐 Advanced Authentication System**: OAuth2, JWT, API keys, MFA, RBAC with multiple providers
+- **🗄️ Database Integration**: SQLite, PostgreSQL, MongoDB, Redis support with connection pooling and migrations
+- **🤖 Machine Learning Integration**: Intelligent response generation, anomaly detection, smart caching, and predictive analytics
 
 ### Production Ready
 

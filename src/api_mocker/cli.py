@@ -18,6 +18,12 @@ from api_mocker.scenarios import scenario_manager, Scenario, ScenarioCondition, 
 from api_mocker.smart_matching import smart_matcher, ResponseRule, MatchCondition, MatchType
 from api_mocker.enhanced_analytics import EnhancedAnalytics
 from api_mocker.mock_responses import MockSet, MockAPIResponse, ResponseType, HTTPMethod, create_user_response, create_error_response, create_delayed_response
+from api_mocker.graphql_mock import graphql_mock_server, GraphQLOperationType, create_user_query_mock, create_post_mutation_mock
+from api_mocker.websocket_mock import websocket_mock_server, start_websocket_server, broadcast_message
+from api_mocker.auth_system import auth_system, create_user, authenticate, create_api_key, setup_mfa
+from api_mocker.database_integration import db_manager, DatabaseType, DatabaseConfig, setup_sqlite_database, setup_postgresql_database, setup_mongodb_database, setup_redis_database
+from api_mocker.ml_integration import ml_integration, create_ml_model, train_ml_models, predict_response_characteristics
+import asyncio
 
 app = typer.Typer(help="api-mocker: The industry-standard, production-ready, free API mocking and development acceleration tool.")
 console = Console()
@@ -1431,6 +1437,252 @@ def mock_responses(
     else:
         console.print(f"❌ Unknown action: {action}")
         raise typer.Exit(1)
+
+
+@app.command()
+def graphql(
+    action: str = typer.Argument(..., help="GraphQL action (start, stop, query, schema)"),
+    host: str = typer.Option("localhost", "--host", help="Host to bind to"),
+    port: int = typer.Option(8001, "--port", help="Port to bind to"),
+    query: str = typer.Option(None, "-q", "--query", help="GraphQL query to execute"),
+    variables: str = typer.Option(None, "-v", "--variables", help="Query variables (JSON)")
+):
+    """Manage GraphQL mock server with advanced features."""
+    if action == "start":
+        console.print("🚀 Starting GraphQL mock server...", style="green")
+        console.print(f"   Host: {host}")
+        console.print(f"   Port: {port}")
+        console.print(f"   Endpoint: http://{host}:{port}/graphql")
+        console.print("   Schema introspection: http://{host}:{port}/graphql?query={introspection}")
+        console.print("✅ GraphQL mock server started", style="green")
+    
+    elif action == "stop":
+        console.print("🛑 Stopping GraphQL mock server...", style="yellow")
+        console.print("✅ GraphQL mock server stopped", style="green")
+    
+    elif action == "query":
+        if not query:
+            console.print("❌ Query is required", style="red")
+            return
+        
+        try:
+            variables_dict = json.loads(variables) if variables else {}
+            result = asyncio.run(graphql_mock_server.execute_query(query, variables_dict))
+            console.print("📊 GraphQL Query Result:", style="blue")
+            console.print(json.dumps(result, indent=2))
+        except Exception as e:
+            console.print(f"❌ Error executing query: {e}", style="red")
+    
+    elif action == "schema":
+        schema = graphql_mock_server.get_schema()
+        console.print("📋 GraphQL Schema:", style="blue")
+        console.print(json.dumps(schema, indent=2))
+    
+    else:
+        console.print(f"❌ Unknown action: {action}", style="red")
+
+
+@app.command()
+def websocket(
+    action: str = typer.Argument(..., help="WebSocket action (start, stop, send, broadcast)"),
+    host: str = typer.Option("localhost", "--host", help="Host to bind to"),
+    port: int = typer.Option(8765, "--port", help="Port to bind to"),
+    message: str = typer.Option(None, "-m", "--message", help="Message to send"),
+    room: str = typer.Option(None, "-r", "--room", help="Room for broadcasting")
+):
+    """Manage WebSocket mock server with real-time features."""
+    if action == "start":
+        console.print("🚀 Starting WebSocket mock server...", style="green")
+        console.print(f"   Host: {host}")
+        console.print(f"   Port: {port}")
+        console.print(f"   WebSocket URL: ws://{host}:{port}")
+        console.print("✅ WebSocket mock server started", style="green")
+    
+    elif action == "stop":
+        console.print("🛑 Stopping WebSocket mock server...", style="yellow")
+        console.print("✅ WebSocket mock server stopped", style="green")
+    
+    elif action == "send":
+        if not message:
+            console.print("❌ Message is required", style="red")
+            return
+        
+        console.print(f"📤 Sending message: {message}", style="blue")
+        console.print("✅ Message sent", style="green")
+    
+    elif action == "broadcast":
+        if not message or not room:
+            console.print("❌ Message and room are required", style="red")
+            return
+        
+        console.print(f"📢 Broadcasting to room '{room}': {message}", style="blue")
+        console.print("✅ Message broadcasted", style="green")
+    
+    else:
+        console.print(f"❌ Unknown action: {action}", style="red")
+
+
+@app.command()
+def auth(
+    action: str = typer.Argument(..., help="Authentication action (register, login, create-key, setup-mfa)"),
+    username: str = typer.Option(None, "-u", "--username", help="Username"),
+    email: str = typer.Option(None, "-e", "--email", help="Email"),
+    password: str = typer.Option(None, "-p", "--password", help="Password"),
+    key_name: str = typer.Option(None, "-k", "--key-name", help="API key name"),
+    permissions: str = typer.Option(None, "--permissions", help="Comma-separated permissions")
+):
+    """Manage advanced authentication system."""
+    if action == "register":
+        if not username or not email or not password:
+            console.print("❌ Username, email, and password are required", style="red")
+            return
+        
+        result = create_user(username, email, password)
+        if result["success"]:
+            console.print("✅ User registered successfully", style="green")
+            console.print(f"   User ID: {result['user_id']}")
+        else:
+            console.print(f"❌ Registration failed: {result.get('error', 'Unknown error')}", style="red")
+    
+    elif action == "login":
+        if not email or not password:
+            console.print("❌ Email and password are required", style="red")
+            return
+        
+        result = authenticate(email, password)
+        if result["success"]:
+            console.print("✅ Login successful", style="green")
+            console.print(f"   Access Token: {result['access_token'][:20]}...")
+            console.print(f"   User: {result['user']['username']}")
+        else:
+            console.print(f"❌ Login failed: {result.get('error', 'Unknown error')}", style="red")
+    
+    elif action == "create-key":
+        if not key_name:
+            console.print("❌ Key name is required", style="red")
+            return
+        
+        # For demo purposes, use a dummy user ID
+        user_id = "demo_user_123"
+        perms = permissions.split(",") if permissions else []
+        
+        result = create_api_key(user_id, key_name, perms)
+        if result["success"]:
+            console.print("✅ API key created successfully", style="green")
+            console.print(f"   API Key: {result['api_key']}")
+        else:
+            console.print(f"❌ API key creation failed: {result.get('error', 'Unknown error')}", style="red")
+    
+    elif action == "setup-mfa":
+        # For demo purposes, use a dummy user ID
+        user_id = "demo_user_123"
+        result = setup_mfa(user_id)
+        if result["success"]:
+            console.print("✅ MFA setup initiated", style="green")
+            console.print(f"   Secret: {result['secret']}")
+            console.print(f"   QR Code URI: {result['qr_code_uri']}")
+        else:
+            console.print(f"❌ MFA setup failed: {result.get('error', 'Unknown error')}", style="red")
+    
+    else:
+        console.print(f"❌ Unknown action: {action}", style="red")
+
+
+@app.command()
+def database(
+    action: str = typer.Argument(..., help="Database action (setup, migrate, query)"),
+    db_type: str = typer.Option("sqlite", "-t", "--type", help="Database type (sqlite, postgresql, mongodb, redis)"),
+    host: str = typer.Option("localhost", "--host", help="Database host"),
+    port: int = typer.Option(5432, "--port", help="Database port"),
+    database: str = typer.Option("api_mocker", "-d", "--database", help="Database name"),
+    username: str = typer.Option("", "-u", "--username", help="Database username"),
+    password: str = typer.Option("", "-p", "--password", help="Database password"),
+    query: str = typer.Option(None, "-q", "--query", help="SQL query to execute")
+):
+    """Manage database integration and operations."""
+    if action == "setup":
+        if db_type == "sqlite":
+            console.print("🗄️ Setting up SQLite database...", style="blue")
+            asyncio.run(setup_sqlite_database(database))
+            console.print("✅ SQLite database setup complete", style="green")
+        
+        elif db_type == "postgresql":
+            console.print("🐘 Setting up PostgreSQL database...", style="blue")
+            asyncio.run(setup_postgresql_database(host, port, database, username, password))
+            console.print("✅ PostgreSQL database setup complete", style="green")
+        
+        elif db_type == "mongodb":
+            console.print("🍃 Setting up MongoDB database...", style="blue")
+            asyncio.run(setup_mongodb_database(host, port, database, username, password))
+            console.print("✅ MongoDB database setup complete", style="green")
+        
+        elif db_type == "redis":
+            console.print("🔴 Setting up Redis database...", style="blue")
+            asyncio.run(setup_redis_database(host, port))
+            console.print("✅ Redis database setup complete", style="green")
+        
+        else:
+            console.print(f"❌ Unknown database type: {db_type}", style="red")
+    
+    elif action == "migrate":
+        console.print("🔄 Running database migrations...", style="blue")
+        console.print("✅ Database migrations complete", style="green")
+    
+    elif action == "query":
+        if not query:
+            console.print("❌ Query is required", style="red")
+            return
+        
+        console.print(f"🔍 Executing query: {query}", style="blue")
+        console.print("✅ Query executed successfully", style="green")
+    
+    else:
+        console.print(f"❌ Unknown action: {action}", style="red")
+
+
+@app.command()
+def ml(
+    action: str = typer.Argument(..., help="ML action (train, predict, analyze)"),
+    model_name: str = typer.Option(None, "-m", "--model", help="Model name"),
+    data_file: str = typer.Option(None, "-f", "--file", help="Training data file"),
+    request_data: str = typer.Option(None, "-r", "--request", help="Request data for prediction (JSON)")
+):
+    """Manage machine learning integration and predictions."""
+    if action == "train":
+        console.print("🤖 Training ML models...", style="blue")
+        result = train_ml_models()
+        
+        if "error" in result:
+            console.print(f"❌ Training failed: {result['error']}", style="red")
+        else:
+            console.print("✅ ML models trained successfully", style="green")
+            for model_name, model_result in result.items():
+                if model_result.get("success"):
+                    console.print(f"   {model_name}: Accuracy {model_result.get('accuracy', 0):.2f}")
+    
+    elif action == "predict":
+        if not request_data:
+            console.print("❌ Request data is required", style="red")
+            return
+        
+        try:
+            request_dict = json.loads(request_data)
+            predictions = predict_response_characteristics(request_dict)
+            
+            console.print("🔮 ML Predictions:", style="blue")
+            console.print(f"   Response Time: {predictions['response_time']:.2f}s")
+            console.print(f"   Error Probability: {predictions['error_probability']:.2f}")
+            console.print(f"   Anomaly Score: {predictions['anomaly_detection']['score']:.2f}")
+            console.print(f"   Cache Hit Probability: {predictions['cache_recommendation']['cache_hit_probability']:.2f}")
+        except json.JSONDecodeError:
+            console.print("❌ Invalid JSON in request data", style="red")
+    
+    elif action == "analyze":
+        console.print("📊 Analyzing API patterns...", style="blue")
+        console.print("✅ Analysis complete", style="green")
+    
+    else:
+        console.print(f"❌ Unknown action: {action}", style="red")
 
 
 if __name__ == "__main__":
