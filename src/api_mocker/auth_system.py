@@ -18,13 +18,31 @@ import time
 from typing import Any, Dict, List, Optional, Union, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import json
 import base64
 import hmac
 import pyotp
 import qrcode
 from io import BytesIO
+import bcrypt  # Replaces passlib
+from pydantic import BaseModel, EmailStr, Field, validator
+import os
+
+# Pydantic Models
+class UserCreate(BaseModel):
+    username: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+class TokenSchema(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
 
 
 class AuthProvider(Enum):
@@ -198,7 +216,7 @@ class JWTManager:
     def create_token(self, user_id: str, token_type: TokenType, 
                     expires_in: int = 3600, **kwargs) -> str:
         """Create a JWT token"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         payload = {
             "user_id": user_id,
             "token_type": token_type.value,
@@ -259,10 +277,15 @@ class AdvancedAuthSystem:
     """Main authentication system"""
     
     def __init__(self, secret_key: str = None):
-        self.secret_key = secret_key or secrets.token_hex(32)
+        # Use simple environment variable check for secret key or generate safe random one
+        self.secret_key = secret_key or os.getenv("API_MOCKER_SECRET_KEY") or secrets.token_hex(32)
+        if not secret_key and not os.getenv("API_MOCKER_SECRET_KEY"):
+            print("WARNING: Using random secret key. Sessions will be invalidated on restart.")
+            
         self.jwt_manager = JWTManager(self.secret_key)
         self.mfa_handler = MFAHandler()
         self.password_validator = PasswordValidator()
+        # Removed pwd_context (passlib)
         
         # Storage
         self.users: Dict[str, User] = {}
@@ -277,24 +300,27 @@ class AdvancedAuthSystem:
         self.lockout_duration = 300  # 5 minutes
     
     def hash_password(self, password: str) -> str:
-        """Hash a password using PBKDF2"""
-        salt = secrets.token_hex(16)
-        pwd_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
-        return f"{salt}:{pwd_hash.hex()}"
+        """Hash a password using bcrypt"""
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
     
     def verify_password(self, password: str, password_hash: str) -> bool:
         """Verify a password against its hash"""
         try:
-            salt, hash_hex = password_hash.split(':')
-            pwd_hash = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
-            return hmac.compare_digest(hash_hex, pwd_hash.hex())
+            return bcrypt.checkpw(password.encode('utf-8'), password_hash.encode('utf-8'))
         except ValueError:
             return False
     
     def register_user(self, username: str, email: str, password: str,
                      roles: List[UserRole] = None) -> Dict[str, Any]:
         """Register a new user"""
-        # Validate password
+        try:
+            user_data = UserCreate(username=username, email=email, password=password)
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+        # Validate password strength logic (keep existing validator for complexity rules)
         password_validation = self.password_validator.validate(password)
         if not password_validation["is_valid"]:
             return {
@@ -330,6 +356,13 @@ class AdvancedAuthSystem:
     def authenticate_user(self, email: str, password: str, 
                           ip_address: str = None, user_agent: str = None) -> Dict[str, Any]:
         """Authenticate a user with email and password"""
+        # Validate input using Pydantic model
+        try:
+            # validators will check email format
+            login_data = UserLogin(email=email, password=password)
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
         # Check rate limiting
         if self._is_rate_limited(email):
             return {"success": False, "error": "Too many login attempts"}

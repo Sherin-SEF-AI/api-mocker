@@ -10,11 +10,13 @@ import uuid
 class RouteConfig:
     path: str
     method: str
-    response: Union[Dict, Callable, str]
+    response: Any
     status_code: int = 200
-    headers: Optional[Dict[str, str]] = None
+    headers: Dict = None
     delay: float = 0
     dynamic: bool = False
+    weight: int = 100
+    auth_required: bool = False
 
 class DynamicResponseGenerator:
     """Generates realistic fake data for API responses."""
@@ -208,7 +210,7 @@ class CoreEngine:
     def add_middleware(self, middleware_func: Callable):
         self.middleware.append(middleware_func)
     
-    def process_request(self, path: str, method: str, headers: Dict, body: Any = None) -> Dict:
+    def process_request(self, path: str, method: str, headers: Dict, body: Any = None, query_params: Dict = None) -> Dict:
         # Apply middleware
         for middleware in self.middleware:
             path, method, headers, body = middleware(path, method, headers, body)
@@ -218,8 +220,20 @@ class CoreEngine:
         if not route:
             return {"status_code": 404, "body": {"error": "Route not found"}}
         
+        # Check Authentication
+        if route.auth_required:
+            from .auth_system import auth_system
+            auth_header = headers.get("authorization") or headers.get("Authorization")
+            if not auth_header or not auth_header.startswith("Bearer "):
+                return {"status_code": 401, "body": {"error": "Missing or invalid token"}}
+            
+            token = auth_header.split(" ")[1]
+            validation = auth_system.verify_token(token)
+            if not validation["valid"]:
+                return {"status_code": 401, "body": {"error": validation.get("error", "Invalid token")}}
+        
         # Generate response
-        response = self._generate_response(route, path, method, headers, body)
+        response = self._generate_response(route, path, method, headers, body, query_params)
         
         # Apply delay if specified
         if route.delay > 0:
@@ -228,10 +242,16 @@ class CoreEngine:
         
         return response
     
-    def _generate_response(self, route: RouteConfig, path: str, method: str, headers: Dict, body: Any) -> Dict:
+    def _generate_response(self, route: RouteConfig, path: str, method: str, headers: Dict, body: Any, query_params: Dict = None) -> Dict:
         if callable(route.response):
+            # Check if the callable accepts query_params
+            import inspect
+            sig = inspect.signature(route.response)
+            if 'query_params' in sig.parameters:
+                return route.response(path, method, headers, body, self, query_params)
             return route.response(path, method, headers, body, self)
         elif isinstance(route.response, str):
             return {"status_code": route.status_code, "body": route.response}
         else:
-            return {"status_code": route.status_code, "body": route.response} 
+            return {"status_code": route.status_code, "body": route.response}
+ 

@@ -1,7 +1,7 @@
 [project]
 name = "api-mocker"
-version = "0.4.0"
-description = "🚀 The Ultimate API Development Acceleration Tool - 3000+ Downloads! Production-ready FastAPI mock server with AI-powered generation, scenario-based mocking, smart response matching, enhanced analytics, comprehensive testing framework, and advanced mock response management system."
+version = "0.5.1"
+description = "🚀 The Ultimate API Development Acceleration Tool - 3000+ Downloads! Production-ready FastAPI mock server with AI-powered generation, scenario-based mocking, smart response matching, enhanced analytics, comprehensive testing framework, advanced mock response management, GraphQL mocking, WebSocket support, enterprise authentication, database integration, and machine learning capabilities."
 authors = [
     { name = "sherin joseph roy", email = "sherin.joseph2217@gmail.com" }
 ]
@@ -86,7 +86,10 @@ dependencies = [
     "pyotp>=2.9.0",
     "qrcode>=7.4.0",
     "PyJWT>=2.8.0",
-    "joblib>=1.3.0"
+    "joblib>=1.3.0",
+    "joblib>=1.3.0",
+    "bcrypt>=4.0.0",
+    "pydantic[email]>=2.0.0"
 ]
 
 [project.optional-dependencies]
@@ -112,4 +115,12 @@ where = ["src"]
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta" 
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=api_mocker"
+testpaths = [
+    "tests",
+]
+asyncio_mode = "auto"

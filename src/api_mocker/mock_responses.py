@@ -89,6 +89,7 @@ class MockAPIResponse:
     
     def matches_request(self, request_path: str, request_method: str, 
                        request_headers: Dict[str, str] = None,
+                       body: Any = None,
                        **kwargs) -> bool:
         """
         Check if this response matches the given request.
@@ -97,19 +98,21 @@ class MockAPIResponse:
             request_path: The request path
             request_method: The HTTP method
             request_headers: Request headers
-            request_body: Request body
+            body: Request body
             
         Returns:
             bool: True if response matches request
         """
+        # Handle case where body is passed in kwargs (for backward compatibility)
+        if body is None and 'request_body' in kwargs:
+            body = kwargs['request_body']
         # Basic path and method matching
         if not self._path_matches(request_path) or self.method.value != request_method:
             return False
         
         # Check conditions if any
         if self.conditions:
-            request_body = kwargs.get('body')
-            return self._check_conditions(request_headers, request_body)
+            return self._check_conditions(request_headers, body)
         
         return True
     
@@ -258,31 +261,21 @@ class MockAPIResponse:
     
     def _generate_templated_response(self, context: Dict[str, Any] = None) -> Any:
         """Generate templated response with variable substitution"""
-        if isinstance(self.body, dict):
-            # Handle dictionary body with template variables
-            result = {}
-            vars_dict = {**self.template_vars, **(context or {})}
-            
-            for key, value in self.body.items():
-                if isinstance(value, str):
-                    # Replace template variables in string values
-                    for var_key, var_value in vars_dict.items():
-                        value = value.replace(f'{{{{{var_key}}}}}', str(var_value))
-                result[key] = value
-            return result
-        elif isinstance(self.body, str):
-            template = self.body
-            vars_dict = {**self.template_vars, **(context or {})}
-            
-            for key, value in vars_dict.items():
-                template = template.replace(f'{{{{{key}}}}}', str(value))
-            
-            try:
-                return json.loads(template)
-            except json.JSONDecodeError:
-                return template
-        
-        return self.body
+        vars_dict = {**self.template_vars, **(context or {})}
+        return self._recursive_replace(self.body, vars_dict)
+
+    def _recursive_replace(self, obj: Any, vars_dict: Dict[str, Any]) -> Any:
+        """Recursively replace template variables in object"""
+        if isinstance(obj, dict):
+            return {k: self._recursive_replace(v, vars_dict) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._recursive_replace(item, vars_dict) for item in obj]
+        elif isinstance(obj, str):
+            for var_key, var_value in vars_dict.items():
+                obj = obj.replace(f'{{{{{var_key}}}}}', str(var_value))
+            return obj
+        else:
+            return obj
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert response to dictionary for serialization"""

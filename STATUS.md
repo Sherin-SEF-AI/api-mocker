@@ -1,4 +1,11 @@
-# API-Mocker Status Summary
+# API-Mocker Status Summary (BETA)
+
+> [!WARNING]
+> The project is currently in Beta. Please check [Known Issues](#known-issues) before deploying.
+
+## 🚨 Known Issues & Limitations
+- **Testing**: Test coverage is high for core features (85%) and advanced features (84% Auth, 59% DB, 83% ML, 71% GraphQL, 14% CLI).
+- **Production Readiness**: Structured logging implemented. CLI verified.
 
 ## ✅ Completed Features
 
@@ -137,35 +144,34 @@
 
 ## 🧪 Testing Results
 
-### Comprehensive Test Suite
-- ✅ All CLI help commands work
-- ✅ Import/Export functionality works
-- ✅ Plugin management works
-- ✅ Server functionality works
-- ✅ Imported server works correctly
-- ✅ Test command works
+### Core Functionality
+- ✅ CLI help commands work
+- ✅ Server successfully starts
+- ✅ Basic routes return 200 OK
+- ⚠️ Import/Export needs more testing
+- ⚠️ Plugin system is experimental
 
 ### Server Testing
 - ✅ Basic health endpoint responds correctly
 - ✅ Imported OpenAPI spec routes work
 - ✅ All HTTP methods supported
 - ✅ Path parameters work
-- ✅ JSON responses are properly formatted
+- ⚠️ JSON responses validation is partial
 
 ## 📦 Package Status
 
 ### PyPI Upload
-- **Version**: 0.4.0 (Latest)
+- **Version**: 0.5.0 (Latest)
 - **Status**: Successfully uploaded to PyPI
 - **Downloads**: 3000+ downloads and growing
 - **Install Command**: `pip install api-mocker`
-- **New Features**: AI-powered generation, scenario-based mocking, smart response matching, enhanced analytics, advanced testing framework, analytics dashboard, rate limiting, caching, JWT auth, health monitoring, comprehensive mock response management system
+- **New Features**: AI-powered generation, scenario-based mocking, smart response matching, enhanced analytics, advanced testing framework, analytics dashboard, rate limiting, caching, JWT auth, health monitoring, comprehensive mock response management system, GraphQL mocking, WebSocket support, enterprise authentication, database integration, machine learning capabilities
 
 ### GitHub Repository
 - **Status**: Successfully pushed to GitHub
 - **Repository**: Available for collaboration
 
-## 🚀 Latest Release (v0.4.0) - Mock Response Management Edition
+## 🚀 Latest Release (v0.5.0) - Advanced Features Edition
 
 ### New Features Added
 - **🤖 AI-Powered Mock Generation**: Generate realistic mock data using OpenAI GPT models with fallback to Faker

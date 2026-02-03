@@ -468,9 +468,18 @@ class GraphQLMockServer:
             return {key: self._substitute_variables(value, variables) for key, value in data.items()}
         elif isinstance(data, list):
             return [self._substitute_variables(item, variables) for item in data]
-        elif isinstance(data, str) and data.startswith('{{') and data.endswith('}}'):
-            var_name = data[2:-2]
-            return variables.get(var_name, data)
+        elif isinstance(data, str):
+            # Handle full replacement (preserving type if variable is not string)
+            if data.startswith('{{') and data.endswith('}}'):
+                 var_name = data[2:-2]
+                 if var_name in variables:
+                     return variables[var_name]
+            
+            # Handle partial replacement (string interpolation)
+            if '{{' in data and '}}' in data:
+                for key, value in variables.items():
+                    data = data.replace(f"{{{{{key}}}}}", str(value))
+            return data
         else:
             return data
     

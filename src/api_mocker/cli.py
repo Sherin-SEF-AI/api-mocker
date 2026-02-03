@@ -61,6 +61,47 @@ def start(
         server.start(host=host, port=port)
 
 @app.command()
+def list_routes(
+    config: str = typer.Option(..., "--config", "-c", help="Path to mock server config file"),
+):
+    """List all configured routes."""
+    try:
+        server = MockServer(config_path=config)
+        # Assuming server.engine.router gets populated on init or we need to load manually
+        # server.app is FastAPI, we can inspect routes there if loaded.
+        # But MockServer logic loads config in __init__?
+        # Let's check MockServer implementation in server.py if needed.
+        # Assuming server._load_config() is called in __init__.
+        
+        table = Table(title="Configured Routes")
+        table.add_column("Method", style="cyan")
+        table.add_column("Path", style="green")
+        table.add_column("Auth", style="red")
+        
+        # We might need to access the config directly if server doesn't expose routes easily without starting
+        # But server.engine.router.routes should exist.
+        # Let's just read the file directly for now to be safe and simple, 
+        # as MockServer might require starting to register FastAPI routes fully.
+        # Actually server.engine.router.routes is populated in _apply_config
+        
+        # Re-implementing config read for visibility
+        with open(config, 'r') as f:
+             if config.endswith('.yaml') or config.endswith('.yml'):
+                 conf_data = yaml.safe_load(f)
+             else:
+                 conf_data = json.load(f)
+        
+        for route in conf_data.get("routes", []):
+            auth_str = "Yes" if route.get("auth", False) else "No"
+            table.add_row(route.get("method", "GET"), route.get("path"), auth_str)
+            
+        console.print(table)
+            
+    except Exception as e:
+        console.print(f"[red]✗[/red] Failed to list routes: {e}")
+        raise typer.Exit(1)
+
+@app.command()
 def import_spec(
     file_path: str = typer.Argument(..., help="Path to OpenAPI/Postman file"),
     output: str = typer.Option("api-mock.yaml", "--output", "-o", help="Output config file path"),
@@ -618,7 +659,7 @@ def advanced(
             
             config = AuthConfig(
                 enabled=True,
-                secret_key="your-secret-key-change-this",
+                secret_key=os.getenv("API_MOCKER_SECRET_KEY", "your-secret-key-change-this"),
                 algorithm="HS256",
                 token_expiry_hours=24
             )

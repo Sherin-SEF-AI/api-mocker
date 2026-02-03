@@ -173,8 +173,9 @@ class SQLiteManager:
         query = f"DELETE FROM {table_name} WHERE {where_clause}"
         return await self.execute_update(query, params)
     
+    
     def _build_where_clause(self, conditions: List[QueryCondition]) -> Tuple[str, Tuple]:
-        """Build WHERE clause from conditions"""
+        """Build WHERE clause from conditions, returning parameterized query and params"""
         if not conditions:
             return "1=1", ()
         
@@ -182,22 +183,43 @@ class SQLiteManager:
         params = []
         
         for i, condition in enumerate(conditions):
+            # Only add logical operator if it's not the first condition
             if i > 0:
-                clauses.append(condition.logical_operator)
+                # Validate logical operator to prevent injection
+                op = condition.logical_operator.upper()
+                if op not in ["AND", "OR"]:
+                    op = "AND"
+                clauses.append(op)
             
-            if condition.operator == QueryOperator.EQ:
-                clauses.append(f"{condition.field} = ?")
-                params.append(condition.value)
-            elif condition.operator == QueryOperator.NE:
-                clauses.append(f"{condition.field} != ?")
-                params.append(condition.value)
-            elif condition.operator == QueryOperator.LIKE:
-                clauses.append(f"{condition.field} LIKE ?")
+            # Map operators to SQL
+            op_map = {
+                QueryOperator.EQ: "=",
+                QueryOperator.NE: "!=",
+                QueryOperator.GT: ">",
+                QueryOperator.GTE: ">=",
+                QueryOperator.LT: "<",
+                QueryOperator.LTE: "<=",
+                QueryOperator.LIKE: "LIKE"
+            }
+            
+            if condition.operator in op_map:
+                clauses.append(f"{condition.field} {op_map[condition.operator]} ?")
                 params.append(condition.value)
             elif condition.operator == QueryOperator.IN:
-                placeholders = ",".join(["?" for _ in condition.value])
-                clauses.append(f"{condition.field} IN ({placeholders})")
-                params.extend(condition.value)
+                # Handle IN operator safely
+                if not condition.value:
+                    clauses.append("1=0") # Empty list matches nothing
+                else:
+                    placeholders = ",".join(["?" for _ in condition.value])
+                    clauses.append(f"{condition.field} IN ({placeholders})")
+                    params.extend(condition.value)
+            elif condition.operator == QueryOperator.NOT_IN:
+                if not condition.value:
+                     clauses.append("1=1") # NOT IN empty list is always true
+                else:
+                    placeholders = ",".join(["?" for _ in condition.value])
+                    clauses.append(f"{condition.field} NOT IN ({placeholders})")
+                    params.extend(condition.value)
             elif condition.operator == QueryOperator.IS_NULL:
                 clauses.append(f"{condition.field} IS NULL")
             elif condition.operator == QueryOperator.IS_NOT_NULL:

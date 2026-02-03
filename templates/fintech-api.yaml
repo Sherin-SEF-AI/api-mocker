@@ -1,0 +1,26 @@
+server:
+  host: "127.0.0.1"
+  port: 8001
+
+resources:
+  - name: accounts
+    path: /v1/accounts
+    id_field: account_id
+    
+  - name: transactions
+    path: /v1/transactions
+    id_field: transaction_id
+
+  - name: beneficiaries
+    path: /v1/beneficiaries
+    id_field: id
+
+routes:
+  - path: /v1/auth/login
+    method: POST
+    response:
+      status_code: 200
+      body:
+        access_token: "mock-jwt-token"
+        expires_in: 3600
+        token_type: "Bearer"

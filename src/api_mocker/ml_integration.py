@@ -117,7 +117,7 @@ class FeatureExtractor:
         features['has_path_params'] = 1 if '{' in request_data.get('path', '') else 0
         
         # Header features
-        headers = request_data.get('headers', {})
+        headers = {k.lower(): v for k, v in request_data.get('headers', {}).items()}
         features['header_count'] = len(headers)
         features['has_auth_header'] = 1 if 'authorization' in headers else 0
         features['has_content_type'] = 1 if 'content-type' in headers else 0
@@ -225,7 +225,14 @@ class MLModelManager:
             
             # Evaluate
             y_pred = model.model.predict(X_test_scaled)
-            accuracy = accuracy_score(y_test, y_pred)
+            
+            if model.model_type == MLModelType.REGRESSION:
+                 from sklearn.metrics import r2_score
+                 # R2 score can be negative, but it runs.
+                 # For very simple/random data, it might be poor.
+                 accuracy = r2_score(y_test, y_pred)
+            else:
+                 accuracy = accuracy_score(y_test, y_pred)
             
             # Update model
             model.accuracy = accuracy

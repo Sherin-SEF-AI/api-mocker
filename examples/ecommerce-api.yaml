@@ -1,0 +1,31 @@
+server:
+  host: "127.0.0.1"
+  port: 8000
+  debug: true
+
+resources:
+  - name: products
+    path: /api/products
+    id_field: id
+    delay: 0
+  
+  - name: users
+    path: /api/users
+    id_field: id
+
+  - name: cart_items
+    path: /api/cart/items
+    id_field: id
+
+  - name: orders
+    path: /api/orders
+    id_field: order_id
+
+routes:
+  - path: /api/health
+    method: GET
+    response:
+      status_code: 200
+      body:
+        status: healthy
+        version: 1.0.0

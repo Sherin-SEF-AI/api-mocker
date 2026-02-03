@@ -1,0 +1,25 @@
+server:
+  host: "127.0.0.1"
+  port: 8002
+
+resources:
+  - name: tenants
+    path: /api/v1/tenants
+    id_field: tenant_id
+
+  - name: users
+    path: /api/v1/users
+    id_field: user_id
+
+  - name: subscriptions
+    path: /api/v1/subscriptions
+    id_field: sub_id
+
+  - name: features
+    path: /api/v1/features
+    id_field: feature_key
+
+routes:
+  - path: /api/v1/meta/health
+    method: GET
+    response: {"status": "ok"}
